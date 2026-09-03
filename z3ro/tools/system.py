@@ -148,7 +148,7 @@ def press_key(key: str) -> ToolResult:
 
 
 def move_mouse(x: int, y: int) -> ToolResult:
-    """Move the mouse to a screen coordinate."""
+    """Move the mouse and verify the final cursor position."""
 
     if not isinstance(x, int) or not isinstance(y, int):
         return ToolResult(
@@ -179,9 +179,21 @@ def move_mouse(x: int, y: int) -> ToolResult:
         duration=0.2,
     )
 
+    actual_x, actual_y = pyautogui.position()
+
+    if actual_x != x or actual_y != y:
+        return ToolResult(
+            success=False,
+            output=(
+                f"Mouse verification failed. "
+                f"Expected ({x}, {y}), "
+                f"got ({actual_x}, {actual_y})."
+            ),
+        )
+
     return ToolResult(
         success=True,
-        output=f"Mouse moved to ({x}, {y}).",
+        output=f"Mouse moved and verified at ({actual_x}, {actual_y}).",
     )
 
 
@@ -239,6 +251,7 @@ def focus_app_window(title: str) -> ToolResult:
         )
 
     for _ in range(10):
+
         if focus_window(title):
             return ToolResult(
                 success=True,

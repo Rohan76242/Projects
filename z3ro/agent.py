@@ -1,6 +1,7 @@
 from z3ro.brain import LocalBrain
 from z3ro.planner import Planner
 from z3ro.tools.system import execute_tool
+from z3ro.window import is_window_focused, is_window_visible
 
 
 class Z3ROAgent:
@@ -23,72 +24,119 @@ class Z3ROAgent:
         except Exception as e:
             return None, str(e)
 
+    def verify_action(self, action, result):
+
+        if not result.success:
+            return False
+
+        if action.action == "open_app":
+            return True
+
+        if action.action == "focus_window":
+
+            return is_window_focused(action.title)
+
+        if action.action == "type_text":
+            return True
+
+        if action.action == "press_key":
+            return True
+
+        if action.action == "move_mouse":
+            return True
+
+        if action.action == "click_mouse":
+            return True
+
+        if action.action == "double_click_mouse":
+            return True
+
+        return False
+
     def execute_plan(self, plan):
 
         results = []
 
         for action in plan.actions:
 
-            if action.action == "open_app":
+            result = None
 
-                result = execute_tool(
-                    "open_app",
-                    app=action.app,
-                )
+            for attempt in range(3):
 
-            elif action.action == "focus_window":
+                if action.action == "open_app":
 
-                result = execute_tool(
-                    "focus_window",
-                    title=action.title,
-                )
+                    result = execute_tool(
+                        "open_app",
+                        app=action.app,
+                    )
 
-            elif action.action == "type_text":
+                elif action.action == "focus_window":
 
-                result = execute_tool(
-                    "type_text",
-                    text=action.text,
-                )
+                    result = execute_tool(
+                        "focus_window",
+                        title=action.title,
+                    )
 
-            elif action.action == "press_key":
+                elif action.action == "type_text":
 
-                result = execute_tool(
-                    "press_key",
-                    key=action.key,
-                )
+                    result = execute_tool(
+                        "type_text",
+                        text=action.text,
+                    )
 
-            elif action.action == "move_mouse":
+                elif action.action == "press_key":
 
-                result = execute_tool(
-                    "move_mouse",
-                    x=action.x,
-                    y=action.y,
-                )
+                    result = execute_tool(
+                        "press_key",
+                        key=action.key,
+                    )
 
-            elif action.action == "click_mouse":
+                elif action.action == "move_mouse":
 
-                result = execute_tool(
-                    "click_mouse",
-                    button=action.button or "left",
-                )
+                    result = execute_tool(
+                        "move_mouse",
+                        x=action.x,
+                        y=action.y,
+                    )
 
-            elif action.action == "double_click_mouse":
+                elif action.action == "click_mouse":
 
-                result = execute_tool(
-                    "double_click_mouse",
-                )
+                    result = execute_tool(
+                        "click_mouse",
+                        button=action.button or "left",
+                    )
 
-            else:
+                elif action.action == "double_click_mouse":
 
+                    result = execute_tool(
+                        "double_click_mouse",
+                    )
+
+                else:
+
+                    results.append(
+                        f"Unsupported action: {action.action}"
+                    )
+
+                    return results
+
+                if self.verify_action(action, result):
+                    break
+
+            if result is None:
                 results.append(
-                    f"Unsupported action: {action.action}"
+                    f"Action failed: {action.action}"
                 )
-
-                continue
+                break
 
             results.append(result.output)
 
-            if not result.success:
+            if not self.verify_action(action, result):
+
+                results.append(
+                    f"Verification failed: {action.action}"
+                )
+
                 break
 
         return results
