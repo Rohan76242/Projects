@@ -1,4 +1,5 @@
-from z3ro.brain import LocalBrain, parse_decision
+from z3ro.brain import LocalBrain
+from z3ro.planner import Planner
 from z3ro.tools.system import execute_tool
 
 
@@ -6,64 +7,80 @@ class Z3ROAgent:
 
     def __init__(self):
         self.brain = LocalBrain()
+        self.planner = Planner()
 
-    def handle(self, user_input: str) -> str:
+    def build_plan(self, user_input: str):
 
-        brain_response = self.brain.think(user_input)
-        decision = parse_decision(brain_response)
+        response = self.brain.think(user_input)
 
-        if decision.action == "open_app":
+        if not response.success:
+            return None, response.error
 
-            if not decision.app:
-                return "No application was specified."
+        
+        try:
+            plan = self.planner.parse(response.text)
+            return plan, None
 
-            result = execute_tool(
-                "open_app",
-                app=decision.app,
-            )
+        except (ValueError, Exception) as e:
+            return None, str(e)
 
-            return result.output
+    def execute_plan(self, plan):
 
-        if decision.action == "focus_window":
+        results = []
 
-            if not decision.title:
-                return "No window title was specified."
+        for action in plan.actions:
 
-            result = execute_tool(
-                "focus_window",
-                title=decision.title,
-            )
+            if action.action == "open_app":
 
-            return result.output
+                result = execute_tool(
+                    "open_app",
+                    app=action.app,
+                )
 
-        if decision.action == "type_text":
+            elif action.action == "focus_window":
 
-            if not decision.text:
-                return "No text was specified."
+                result = execute_tool(
+                    "focus_window",
+                    title=action.title,
+                )
 
-            result = execute_tool(
-                "type_text",
-                text=decision.text,
-            )
+            elif action.action == "type_text":
 
-            return result.output
+                result = execute_tool(
+                    "type_text",
+                    text=action.text,
+                )
 
-        if decision.action == "press_key":
+            elif action.action == "press_key":
 
-            if not decision.key:
-                return "No key was specified."
+                result = execute_tool(
+                    "press_key",
+                    key=action.key,
+                )
 
-            result = execute_tool(
-                "press_key",
-                key=decision.key,
-            )
+            else:
 
-            return result.output
+                results.append(
+                    f"Unsupported action: {action.action}"
+                )
 
-        if decision.response:
-            return decision.response
+                continue
 
-        return "I couldn't determine what to do."
+            results.append(result.output)
+
+            if not result.success:
+                break
+
+        return results
+
+    def handle(self, user_input: str):
+
+        plan, error = self.build_plan(user_input)
+
+        if error:
+            return [f"Planning error: {error}"]
+
+        return self.execute_plan(plan)
 
 
 if __name__ == "__main__":
@@ -87,6 +104,11 @@ if __name__ == "__main__":
         if not user_input:
             continue
 
-        result = agent.handle(user_input)
+        results = agent.handle(user_input)
 
-        print(f"Z3RO: {result}")
+        print()
+
+        for result in results:
+            print(f"Z3RO: {result}")
+
+        print()

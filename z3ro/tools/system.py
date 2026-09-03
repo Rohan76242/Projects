@@ -1,5 +1,6 @@
 from z3ro.window import focus_window
 import subprocess
+import time
 from dataclasses import dataclass
 from typing import Callable
 
@@ -158,17 +159,19 @@ def focus_app_window(title: str) -> ToolResult:
             output="Window title is too long.",
         )
 
-    if focus_window(title):
-        return ToolResult(
-            success=True,
-            output=f"Focused window: {title}.",
-        )
+    for _ in range(10):
+        if focus_window(title):
+            return ToolResult(
+                success=True,
+                output=f"Focused window: {title}.",
+            )
+
+        time.sleep(0.5)
 
     return ToolResult(
         success=False,
         output=f"Could not find a visible window matching '{title}'.",
     )
-
 
 TOOLS = {
     "focus_window": Tool(

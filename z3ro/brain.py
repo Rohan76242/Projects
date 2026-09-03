@@ -17,25 +17,44 @@ Never use markdown.
 Never explain your reasoning.
 Never expose internal reasoning.
 
+Your response MUST always have this structure:
+
+{
+  "actions": []
+}
+
+Each item in "actions" must contain exactly one supported action.
+
 AVAILABLE ACTIONS:
 
 Open an application:
-{"action":"open_app","app":"notepad"}
+{
+  "action": "open_app",
+  "app": "notepad"
+}
 
 Focus a visible window:
-{"action":"focus_window","title":"ChatGPT"}
+{
+  "action": "focus_window",
+  "title": "Notepad"
+}
 
 Type text:
-{"action":"type_text","text":"Hello bro"}
+{
+  "action": "type_text",
+  "text": "Hello bro"
+}
 
 Press one keyboard key:
-{"action":"press_key","key":"enter"}
+{
+  "action": "press_key",
+  "key": "enter"
+}
 
-Normal conversation:
-{"action":"none","response":"Hello. I'm Z3RO."}
-
-Unsupported request:
-{"action":"none","response":"I can't perform that action yet."}
+For normal conversation, use:
+{
+  "actions": []
+}
 
 SUPPORTED APPS:
 notepad
@@ -60,22 +79,73 @@ end
 pageup
 pagedown
 
+IMPORTANT:
+- Use the minimum number of actions required.
+- Maximum 5 actions.
+- Do not invent actions.
+- Do not execute commands.
+- Do not use shell commands.
+- Do not include explanations outside JSON.
+
 Examples:
 
 User: Open Notepad
-{"action":"open_app","app":"notepad"}
+
+{
+  "actions": [
+    {
+      "action": "open_app",
+      "app": "notepad"
+    }
+  ]
+}
+
+User: Open Notepad and type Hello from Z3RO
+
+{
+  "actions": [
+    {
+      "action": "open_app",
+      "app": "notepad"
+    },
+    {
+      "action": "focus_window",
+      "title": "Notepad"
+    },
+    {
+      "action": "type_text",
+      "text": "Hello from Z3RO"
+    }
+  ]
+}
 
 User: Focus ChatGPT
-{"action":"focus_window","title":"ChatGPT"}
 
-User: Type Hello bro
-{"action":"type_text","text":"Hello bro"}
+{
+  "actions": [
+    {
+      "action": "focus_window",
+      "title": "ChatGPT"
+    }
+  ]
+}
 
 User: Press Enter
-{"action":"press_key","key":"enter"}
+
+{
+  "actions": [
+    {
+      "action": "press_key",
+      "key": "enter"
+    }
+  ]
+}
 
 User: Hello
-{"action":"none","response":"Hello. I'm Z3RO."}
+
+{
+  "actions": []
+}
 """
 
 
@@ -84,16 +154,6 @@ class BrainResponse:
     text: str
     success: bool = True
     error: Optional[str] = None
-
-
-@dataclass
-class ToolDecision:
-    action: str
-    app: Optional[str] = None
-    title: Optional[str] = None
-    text: Optional[str] = None
-    key: Optional[str] = None
-    response: Optional[str] = None
 
 
 class Brain:
@@ -122,7 +182,9 @@ class LocalBrain(Brain):
             request = urllib.request.Request(
                 OLLAMA_URL,
                 data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json"
+                },
                 method="POST",
             )
 
@@ -175,51 +237,6 @@ class LocalBrain(Brain):
             )
 
 
-def parse_decision(response: BrainResponse) -> ToolDecision:
-
-    if not response.success:
-
-        return ToolDecision(
-            action="none",
-            response=response.error,
-        )
-
-    try:
-
-        text = response.text.strip()
-
-        # Remove accidental markdown fences.
-        if text.startswith("```"):
-
-            lines = text.splitlines()
-
-            if lines:
-                lines = lines[1:]
-
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-
-            text = "\n".join(lines).strip()
-
-        data = json.loads(text)
-
-        return ToolDecision(
-            action=data.get("action", "none"),
-            app=data.get("app"),
-            title=data.get("title"),
-            text=data.get("text"),
-            key=data.get("key"),
-            response=data.get("response"),
-        )
-
-    except json.JSONDecodeError:
-
-        return ToolDecision(
-            action="none",
-            response="I couldn't understand the requested action.",
-        )
-
-
 if __name__ == "__main__":
 
     brain = LocalBrain()
@@ -234,21 +251,13 @@ if __name__ == "__main__":
     user_input = input("You: ")
 
     response = brain.think(user_input)
-    decision = parse_decision(response)
 
-    print()
-    print("Decision:")
+    if not response.success:
 
-    print(
-        json.dumps(
-            {
-                "action": decision.action,
-                "app": decision.app,
-                "title": decision.title,
-                "text": decision.text,
-                "key": decision.key,
-                "response": decision.response,
-            },
-            indent=2,
-        )
-    )
+        print("ERROR:", response.error)
+
+    else:
+
+        print()
+        print("RAW BRAIN OUTPUT:")
+        print(response.text)
