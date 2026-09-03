@@ -2,6 +2,8 @@ import subprocess
 from dataclasses import dataclass
 from typing import Callable
 
+import pyautogui
+
 
 @dataclass
 class ToolResult:
@@ -33,21 +35,14 @@ class Tool:
 
 
 def open_app(app: str) -> ToolResult:
-    """
-    Open a Windows application.
-
-    Examples:
-        chrome
-        notepad
-        calculator
-    """
+    """Open an approved Windows application."""
 
     allowed_apps = {
         "notepad": "notepad.exe",
         "calculator": "calc.exe",
         "paint": "mspaint.exe",
         "explorer": "explorer.exe",
-       "chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        "chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     }
 
     app_key = app.lower().strip()
@@ -76,11 +71,95 @@ def open_app(app: str) -> ToolResult:
         )
 
 
+def type_text(text: str) -> ToolResult:
+    """Type controlled text into the currently focused application."""
+
+    if not isinstance(text, str):
+        return ToolResult(
+            success=False,
+            output="Text must be a string.",
+        )
+
+    if not text:
+        return ToolResult(
+            success=False,
+            output="No text supplied.",
+        )
+
+    if len(text) > 2000:
+        return ToolResult(
+            success=False,
+            output="Text is too long.",
+        )
+
+    pyautogui.write(
+        text,
+        interval=0.01,
+    )
+
+    return ToolResult(
+        success=True,
+        output="Text typed successfully.",
+    )
+
+
+def press_key(key: str) -> ToolResult:
+    """Press one approved keyboard key."""
+
+    allowed_keys = {
+        "enter",
+        "esc",
+        "escape",
+        "tab",
+        "space",
+        "backspace",
+        "delete",
+        "up",
+        "down",
+        "left",
+        "right",
+        "home",
+        "end",
+        "pageup",
+        "pagedown",
+    }
+
+    key_name = key.lower().strip()
+
+    if key_name not in allowed_keys:
+        return ToolResult(
+            success=False,
+            output=f"Key '{key}' is not allowed.",
+        )
+
+    if key_name == "escape":
+        key_name = "esc"
+
+    pyautogui.press(key_name)
+
+    return ToolResult(
+        success=True,
+        output=f"Pressed {key_name}.",
+    )
+
+
 TOOLS = {
     "open_app": Tool(
         name="open_app",
         description="Open an approved Windows application.",
         function=open_app,
+    ),
+
+    "type_text": Tool(
+        name="type_text",
+        description="Type text into the currently focused application.",
+        function=type_text,
+    ),
+
+    "press_key": Tool(
+        name="press_key",
+        description="Press an approved keyboard key.",
+        function=press_key,
     ),
 }
 

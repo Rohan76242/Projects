@@ -13,9 +13,37 @@ class Z3ROAgent:
         decision = parse_decision(brain_response)
 
         if decision.action == "open_app":
+
+            if not decision.app:
+                return "No application was specified."
+
             result = execute_tool(
                 "open_app",
                 app=decision.app,
+            )
+
+            return result.output
+
+        if decision.action == "type_text":
+
+            if not decision.text:
+                return "No text was specified."
+
+            result = execute_tool(
+                "type_text",
+                text=decision.text,
+            )
+
+            return result.output
+
+        if decision.action == "press_key":
+
+            if not decision.key:
+                return "No key was specified."
+
+            result = execute_tool(
+                "press_key",
+                key=decision.key,
             )
 
             return result.output
