@@ -47,7 +47,7 @@ def open_app(app: str) -> ToolResult:
         "calculator": "calc.exe",
         "paint": "mspaint.exe",
         "explorer": "explorer.exe",
-        "chrome": "chrome.exe",
+       "chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     }
 
     app_key = app.lower().strip()

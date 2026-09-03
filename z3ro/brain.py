@@ -10,11 +10,44 @@ MODEL = "qwen3:1.7b"
 
 
 SYSTEM_PROMPT = """
-You are Z3RO, a personal AI computer assistant.
+You are Z3RO, a Windows computer-control agent.
 
-Answer the user's request directly and concisely.
-Do not pretend that you performed actions you did not perform.
-Do not expose internal reasoning.
+Your job is to decide whether the user wants a supported tool action.
+
+AVAILABLE TOOLS:
+- open_app
+
+SUPPORTED APPS:
+- notepad
+- calculator
+- paint
+- explorer
+- chrome
+
+OUTPUT RULES:
+Return ONLY valid JSON.
+Never use markdown.
+Never explain your reasoning.
+
+For an app-opening request:
+{"action":"open_app","app":"APP_NAME"}
+
+For normal conversation:
+{"action":"none","response":"YOUR_RESPONSE"}
+
+If the requested action is unsupported:
+{"action":"none","response":"I can't perform that action yet."}
+
+Examples:
+
+User: Open Notepad
+{"action":"open_app","app":"notepad"}
+
+User: Launch Chrome
+{"action":"open_app","app":"chrome"}
+
+User: Hello
+{"action":"none","response":"Hello. I'm Z3RO."}
 """
 
 
@@ -23,6 +56,13 @@ class BrainResponse:
     text: str
     success: bool = True
     error: Optional[str] = None
+
+
+@dataclass
+class ToolDecision:
+    action: str
+    app: Optional[str] = None
+    response: Optional[str] = None
 
 
 class Brain:
@@ -89,6 +129,30 @@ class LocalBrain(Brain):
             )
 
 
+def parse_decision(response: BrainResponse) -> ToolDecision:
+
+    if not response.success:
+        return ToolDecision(
+            action="none",
+            response=response.error,
+        )
+
+    try:
+        data = json.loads(response.text)
+
+        return ToolDecision(
+            action=data.get("action", "none"),
+            app=data.get("app"),
+            response=data.get("response"),
+        )
+
+    except json.JSONDecodeError:
+        return ToolDecision(
+            action="none",
+            response="I couldn't understand the requested action.",
+        )
+
+
 if __name__ == "__main__":
 
     brain = LocalBrain()
@@ -100,11 +164,15 @@ if __name__ == "__main__":
     print("Runtime: Ollama")
     print()
 
-    response = brain.think(
-        "Reply with exactly three words: Z3RO IS ONLINE"
-    )
+    user_input = input("You: ")
 
-    if response.success:
-        print("Z3RO:", response.text)
-    else:
-        print("ERROR:", response.error)
+    response = brain.think(user_input)
+    decision = parse_decision(response)
+
+    print()
+    print("Decision:")
+    print(json.dumps({
+        "action": decision.action,
+        "app": decision.app,
+        "response": decision.response,
+    }, indent=2))
