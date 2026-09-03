@@ -24,6 +24,18 @@ class Z3ROAgent:
 
             return result.output
 
+        if decision.action == "focus_window":
+
+            if not decision.title:
+                return "No window title was specified."
+
+            result = execute_tool(
+                "focus_window",
+                title=decision.title,
+            )
+
+            return result.output
+
         if decision.action == "type_text":
 
             if not decision.text:

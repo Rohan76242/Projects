@@ -1,3 +1,4 @@
+from z3ro.window import focus_window
 import subprocess
 from dataclasses import dataclass
 from typing import Callable
@@ -142,8 +143,40 @@ def press_key(key: str) -> ToolResult:
         output=f"Pressed {key_name}.",
     )
 
+def focus_app_window(title: str) -> ToolResult:
+    """Focus a visible Windows application window."""
+
+    if not isinstance(title, str) or not title.strip():
+        return ToolResult(
+            success=False,
+            output="A window title is required.",
+        )
+
+    if len(title) > 100:
+        return ToolResult(
+            success=False,
+            output="Window title is too long.",
+        )
+
+    if focus_window(title):
+        return ToolResult(
+            success=True,
+            output=f"Focused window: {title}.",
+        )
+
+    return ToolResult(
+        success=False,
+        output=f"Could not find a visible window matching '{title}'.",
+    )
+
 
 TOOLS = {
+    "focus_window": Tool(
+        name="focus_window",
+        description="Focus a visible Windows application window.",
+        function=focus_app_window,
+    ),
+
     "open_app": Tool(
         name="open_app",
         description="Open an approved Windows application.",

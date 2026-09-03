@@ -12,30 +12,39 @@ MODEL = "qwen3:1.7b"
 SYSTEM_PROMPT = """
 You are Z3RO, a Windows computer-control agent.
 
-You must return ONLY valid JSON.
+Return ONLY valid JSON.
 Never use markdown.
 Never explain your reasoning.
 Never expose internal reasoning.
 
 AVAILABLE ACTIONS:
 
-1. Open an application:
+Open an application:
 {"action":"open_app","app":"notepad"}
 
-Supported apps:
+Focus a visible window:
+{"action":"focus_window","title":"ChatGPT"}
+
+Type text:
+{"action":"type_text","text":"Hello bro"}
+
+Press one keyboard key:
+{"action":"press_key","key":"enter"}
+
+Normal conversation:
+{"action":"none","response":"Hello. I'm Z3RO."}
+
+Unsupported request:
+{"action":"none","response":"I can't perform that action yet."}
+
+SUPPORTED APPS:
 notepad
 calculator
 paint
 explorer
 chrome
 
-2. Type text into the currently focused application:
-{"action":"type_text","text":"hello"}
-
-3. Press one keyboard key:
-{"action":"press_key","key":"enter"}
-
-Supported keys:
+SUPPORTED KEYS:
 enter
 esc
 tab
@@ -51,19 +60,13 @@ end
 pageup
 pagedown
 
-4. Normal conversation:
-{"action":"none","response":"Hello. I'm Z3RO."}
-
-5. Unsupported request:
-{"action":"none","response":"I can't perform that action yet."}
-
 Examples:
 
 User: Open Notepad
 {"action":"open_app","app":"notepad"}
 
-User: Launch Chrome
-{"action":"open_app","app":"chrome"}
+User: Focus ChatGPT
+{"action":"focus_window","title":"ChatGPT"}
 
 User: Type Hello bro
 {"action":"type_text","text":"Hello bro"}
@@ -87,6 +90,7 @@ class BrainResponse:
 class ToolDecision:
     action: str
     app: Optional[str] = None
+    title: Optional[str] = None
     text: Optional[str] = None
     key: Optional[str] = None
     response: Optional[str] = None
@@ -171,9 +175,7 @@ class LocalBrain(Brain):
             )
 
 
-def parse_decision(
-    response: BrainResponse,
-) -> ToolDecision:
+def parse_decision(response: BrainResponse) -> ToolDecision:
 
     if not response.success:
 
@@ -188,6 +190,7 @@ def parse_decision(
 
         # Remove accidental markdown fences.
         if text.startswith("```"):
+
             lines = text.splitlines()
 
             if lines:
@@ -203,6 +206,7 @@ def parse_decision(
         return ToolDecision(
             action=data.get("action", "none"),
             app=data.get("app"),
+            title=data.get("title"),
             text=data.get("text"),
             key=data.get("key"),
             response=data.get("response"),
@@ -230,7 +234,6 @@ if __name__ == "__main__":
     user_input = input("You: ")
 
     response = brain.think(user_input)
-
     decision = parse_decision(response)
 
     print()
@@ -241,6 +244,7 @@ if __name__ == "__main__":
             {
                 "action": decision.action,
                 "app": decision.app,
+                "title": decision.title,
                 "text": decision.text,
                 "key": decision.key,
                 "response": decision.response,
