@@ -2,7 +2,6 @@ import json
 import urllib.request
 import urllib.error
 from dataclasses import dataclass
-from typing import Optional
 
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
@@ -10,87 +9,61 @@ MODEL = "qwen3:1.7b"
 
 
 SYSTEM_PROMPT = """
-You are Z3RO, a Windows computer-control agent.
+You are Z3RO, a Windows computer-control planner.
+
+Convert the user's command into a JSON action plan.
 
 Return ONLY valid JSON.
-Never use markdown.
-Never explain your reasoning.
-Never expose internal reasoning.
+Do not use markdown.
+Do not explain anything.
 
-Your response MUST always have this structure:
+The JSON format is:
 
 {
-  "actions": []
+  "actions": [
+    {
+      "action": "action_name",
+      "parameters": "..."
+    }
+  ]
 }
 
-Each item in "actions" must contain exactly one supported action.
+Allowed actions:
 
-AVAILABLE ACTIONS:
+1. open_app
+   Parameters:
+   - app: notepad, calculator, paint, explorer, chrome
 
-Open an application:
-{
-  "action": "open_app",
-  "app": "notepad"
-}
+2. focus_window
+   Parameters:
+   - title: short visible window title
 
-Focus a visible window:
-{
-  "action": "focus_window",
-  "title": "Notepad"
-}
+3. type_text
+   Parameters:
+   - text: text to type
 
-Type text:
-{
-  "action": "type_text",
-  "text": "Hello bro"
-}
+4. press_key
+   Parameters:
+   - key: enter, esc, tab, space, backspace, delete,
+          up, down, left, right, home, end, pageup, pagedown
 
-Press one keyboard key:
-{
-  "action": "press_key",
-  "key": "enter"
-}
+5. move_mouse
+   Parameters:
+   - x: integer screen coordinate
+   - y: integer screen coordinate
 
-For normal conversation, use:
-{
-  "actions": []
-}
+6. click_mouse
+   Parameters:
+   - button: left, right, or middle
 
-SUPPORTED APPS:
-notepad
-calculator
-paint
-explorer
-chrome
-
-SUPPORTED KEYS:
-enter
-esc
-tab
-space
-backspace
-delete
-up
-down
-left
-right
-home
-end
-pageup
-pagedown
-
-IMPORTANT:
-- Use the minimum number of actions required.
-- Maximum 5 actions.
-- Do not invent actions.
-- Do not execute commands.
-- Do not use shell commands.
-- Do not include explanations outside JSON.
+7. double_click_mouse
+   Parameters:
+   - no parameters
 
 Examples:
 
-User: Open Notepad
-
+User: open notepad
+Output:
 {
   "actions": [
     {
@@ -100,8 +73,42 @@ User: Open Notepad
   ]
 }
 
-User: Open Notepad and type Hello from Z3RO
+User: move the mouse to 500 300
+Output:
+{
+  "actions": [
+    {
+      "action": "move_mouse",
+      "x": 500,
+      "y": 300
+    }
+  ]
+}
 
+User: click the mouse
+Output:
+{
+  "actions": [
+    {
+      "action": "click_mouse",
+      "button": "left"
+    }
+  ]
+}
+
+User: right click
+Output:
+{
+  "actions": [
+    {
+      "action": "click_mouse",
+      "button": "right"
+    }
+  ]
+}
+
+User: open notepad and type hello
+Output:
 {
   "actions": [
     {
@@ -114,34 +121,12 @@ User: Open Notepad and type Hello from Z3RO
     },
     {
       "action": "type_text",
-      "text": "Hello from Z3RO"
+      "text": "hello"
     }
   ]
 }
 
-User: Focus ChatGPT
-
-{
-  "actions": [
-    {
-      "action": "focus_window",
-      "title": "ChatGPT"
-    }
-  ]
-}
-
-User: Press Enter
-
-{
-  "actions": [
-    {
-      "action": "press_key",
-      "key": "enter"
-    }
-  ]
-}
-
-User: Hello
+If the user is only asking a normal conversational question, return:
 
 {
   "actions": []
@@ -151,79 +136,77 @@ User: Hello
 
 @dataclass
 class BrainResponse:
-    text: str
-    success: bool = True
-    error: Optional[str] = None
+    success: bool
+    text: str = ""
+    error: str = ""
 
 
 class Brain:
 
-    def think(self, prompt: str) -> BrainResponse:
+    def think(self, user_input: str) -> BrainResponse:
         raise NotImplementedError
 
 
 class LocalBrain(Brain):
 
-    def __init__(self, model: str = MODEL):
-        self.model = model
+    def __init__(self):
+        self.model = MODEL
 
-    def think(self, prompt: str) -> BrainResponse:
+    def think(self, user_input: str) -> BrainResponse:
 
         payload = {
             "model": self.model,
             "system": SYSTEM_PROMPT,
-            "prompt": prompt,
+            "prompt": user_input,
             "stream": False,
             "think": False,
         }
 
-        try:
+        data = json.dumps(payload).encode("utf-8")
 
-            request = urllib.request.Request(
-                OLLAMA_URL,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={
-                    "Content-Type": "application/json"
-                },
-                method="POST",
-            )
+        request = urllib.request.Request(
+            OLLAMA_URL,
+            data=data,
+            headers={
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+
+        try:
 
             with urllib.request.urlopen(
                 request,
                 timeout=120,
             ) as response:
 
-                data = json.loads(
-                    response.read().decode("utf-8")
-                )
+                raw_response = response.read().decode("utf-8")
 
-            text = data.get("response", "").strip()
+            result = json.loads(raw_response)
+
+            text = result.get("response", "").strip()
 
             if not text:
-
                 return BrainResponse(
-                    text="",
                     success=False,
-                    error="Ollama returned an empty response.",
+                    error="Local brain returned an empty response.",
                 )
 
             return BrainResponse(
-                text=text,
                 success=True,
+                text=text,
             )
 
         except urllib.error.HTTPError as e:
 
             return BrainResponse(
-                text="",
                 success=False,
-                error=f"Ollama HTTP {e.code}: {e.reason}",
+                error=f"Ollama HTTP error: {e.code}",
             )
 
         except urllib.error.URLError as e:
 
             return BrainResponse(
-                text="",
                 success=False,
                 error=f"Could not connect to Ollama: {e.reason}",
             )
@@ -231,7 +214,6 @@ class LocalBrain(Brain):
         except Exception as e:
 
             return BrainResponse(
-                text="",
                 success=False,
                 error=str(e),
             )
@@ -239,25 +221,38 @@ class LocalBrain(Brain):
 
 if __name__ == "__main__":
 
-    brain = LocalBrain()
-
     print("================================")
-    print("       Z3RO BRAIN ONLINE")
+    print("          Z3RO BRAIN")
     print("================================")
+    print()
     print(f"Model: {MODEL}")
     print("Runtime: Ollama")
     print()
 
-    user_input = input("You: ")
+    brain = LocalBrain()
 
-    response = brain.think(user_input)
+    while True:
 
-    if not response.success:
+        user_input = input("You: ").strip()
 
-        print("ERROR:", response.error)
+        if user_input.lower() == "exit":
+            break
 
-    else:
+        if not user_input:
+            continue
 
-        print()
-        print("RAW BRAIN OUTPUT:")
-        print(response.text)
+        response = brain.think(user_input)
+
+        if response.success:
+
+            print()
+            print("RAW BRAIN OUTPUT:")
+            print(response.text)
+            print()
+
+        else:
+
+            print()
+            print("BRAIN ERROR:")
+            print(response.error)
+            print()

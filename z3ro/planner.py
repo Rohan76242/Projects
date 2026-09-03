@@ -10,6 +10,9 @@ class PlannedAction:
     title: Optional[str] = None
     text: Optional[str] = None
     key: Optional[str] = None
+    x: Optional[int] = None
+    y: Optional[int] = None
+    button: Optional[str] = None
 
 
 @dataclass
@@ -25,6 +28,9 @@ class Planner:
         "focus_window",
         "type_text",
         "press_key",
+        "move_mouse",
+        "click_mouse",
+        "double_click_mouse",
     }
 
     def parse(self, raw_text: str) -> Plan:
@@ -42,7 +48,7 @@ class Planner:
         if len(raw_actions) == 0:
             raise ValueError("Plan contains no actions.")
 
-        if len(raw_actions) > 5:
+        if len(raw_actions) > 8:
             raise ValueError("Plan contains too many actions.")
 
         actions = []
@@ -59,6 +65,15 @@ class Planner:
                     f"Unsupported action: {action}"
                 )
 
+            x = item.get("x")
+            y = item.get("y")
+
+            if x is not None and not isinstance(x, int):
+                raise ValueError("Mouse x coordinate must be an integer.")
+
+            if y is not None and not isinstance(y, int):
+                raise ValueError("Mouse y coordinate must be an integer.")
+
             actions.append(
                 PlannedAction(
                     action=action,
@@ -66,6 +81,9 @@ class Planner:
                     title=item.get("title"),
                     text=item.get("text"),
                     key=item.get("key"),
+                    x=x,
+                    y=y,
+                    button=item.get("button"),
                 )
             )
 
@@ -85,7 +103,10 @@ def print_plan(plan: Plan):
             f"app={action.app!r} "
             f"title={action.title!r} "
             f"text={action.text!r} "
-            f"key={action.key!r}"
+            f"key={action.key!r} "
+            f"x={action.x!r} "
+            f"y={action.y!r} "
+            f"button={action.button!r}"
         )
 
 
@@ -107,6 +128,15 @@ if __name__ == "__main__":
             {
                 "action": "type_text",
                 "text": "Hello from Z3RO"
+            },
+            {
+                "action": "move_mouse",
+                "x": 500,
+                "y": 300
+            },
+            {
+                "action": "click_mouse",
+                "button": "left"
             }
         ]
     }

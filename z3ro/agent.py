@@ -16,12 +16,11 @@ class Z3ROAgent:
         if not response.success:
             return None, response.error
 
-        
         try:
             plan = self.planner.parse(response.text)
             return plan, None
 
-        except (ValueError, Exception) as e:
+        except Exception as e:
             return None, str(e)
 
     def execute_plan(self, plan):
@@ -56,6 +55,27 @@ class Z3ROAgent:
                 result = execute_tool(
                     "press_key",
                     key=action.key,
+                )
+
+            elif action.action == "move_mouse":
+
+                result = execute_tool(
+                    "move_mouse",
+                    x=action.x,
+                    y=action.y,
+                )
+
+            elif action.action == "click_mouse":
+
+                result = execute_tool(
+                    "click_mouse",
+                    button=action.button or "left",
+                )
+
+            elif action.action == "double_click_mouse":
+
+                result = execute_tool(
+                    "double_click_mouse",
                 )
 
             else:

@@ -1,4 +1,5 @@
 from z3ro.window import focus_window
+
 import subprocess
 import time
 from dataclasses import dataclass
@@ -29,6 +30,7 @@ class Tool:
     def execute(self, **kwargs) -> ToolResult:
         try:
             return self.function(**kwargs)
+
         except Exception as e:
             return ToolResult(
                 success=False,
@@ -144,6 +146,83 @@ def press_key(key: str) -> ToolResult:
         output=f"Pressed {key_name}.",
     )
 
+
+def move_mouse(x: int, y: int) -> ToolResult:
+    """Move the mouse to a screen coordinate."""
+
+    if not isinstance(x, int) or not isinstance(y, int):
+        return ToolResult(
+            success=False,
+            output="Mouse coordinates must be integers.",
+        )
+
+    if x < 0 or y < 0:
+        return ToolResult(
+            success=False,
+            output="Mouse coordinates cannot be negative.",
+        )
+
+    screen_width, screen_height = pyautogui.size()
+
+    if x >= screen_width or y >= screen_height:
+        return ToolResult(
+            success=False,
+            output=(
+                f"Coordinates outside screen: "
+                f"{screen_width}x{screen_height}."
+            ),
+        )
+
+    pyautogui.moveTo(
+        x,
+        y,
+        duration=0.2,
+    )
+
+    return ToolResult(
+        success=True,
+        output=f"Mouse moved to ({x}, {y}).",
+    )
+
+
+def click_mouse(button: str = "left") -> ToolResult:
+    """Click the mouse using an approved button."""
+
+    allowed_buttons = {
+        "left",
+        "right",
+        "middle",
+    }
+
+    button_name = button.lower().strip()
+
+    if button_name not in allowed_buttons:
+        return ToolResult(
+            success=False,
+            output=f"Mouse button '{button}' is not allowed.",
+        )
+
+    pyautogui.click(
+        button=button_name,
+    )
+
+    return ToolResult(
+        success=True,
+        output=f"Clicked {button_name} mouse button.",
+    )
+
+
+def double_click_mouse() -> ToolResult:
+    """Double-click using the left mouse button."""
+
+    pyautogui.doubleClick()
+
+    return ToolResult(
+        success=True,
+        output="Double-clicked.",
+    )
+
+
 def focus_app_window(title: str) -> ToolResult:
     """Focus a visible Windows application window."""
 
@@ -173,6 +252,7 @@ def focus_app_window(title: str) -> ToolResult:
         output=f"Could not find a visible window matching '{title}'.",
     )
 
+
 TOOLS = {
     "focus_window": Tool(
         name="focus_window",
@@ -197,6 +277,24 @@ TOOLS = {
         description="Press an approved keyboard key.",
         function=press_key,
     ),
+
+    "move_mouse": Tool(
+        name="move_mouse",
+        description="Move the mouse to a screen coordinate.",
+        function=move_mouse,
+    ),
+
+    "click_mouse": Tool(
+        name="click_mouse",
+        description="Click the mouse using an approved button.",
+        function=click_mouse,
+    ),
+
+    "double_click_mouse": Tool(
+        name="double_click_mouse",
+        description="Double-click using the left mouse button.",
+        function=double_click_mouse,
+    ),
 }
 
 
@@ -215,6 +313,7 @@ def execute_tool(name: str, **kwargs) -> ToolResult:
 
 
 if __name__ == "__main__":
+
     print("================================")
     print("       Z3RO TOOL ENGINE")
     print("================================")
