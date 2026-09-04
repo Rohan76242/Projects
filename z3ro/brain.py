@@ -105,6 +105,10 @@ press_key
 move_mouse
 click_mouse
 double_click_mouse
+send_whatsapp
+open_whatsapp
+send_telegram
+open_telegram
 
 Rules:
 
@@ -120,10 +124,14 @@ Rules:
 8. Use move_mouse for explicit screen coordinates.
 9. Use click_mouse for clicking.
 10. Use double_click_mouse for double-clicking.
-11. Keep plans short.
-12. Return JSON only.
-13. Do not include markdown.
-14. Do not include explanations.
+11. Use send_whatsapp to send a message on WhatsApp.
+12. Use open_whatsapp to open the WhatsApp app.
+13. Use send_telegram to send a message on Telegram.
+14. Use open_telegram to open the Telegram app.
+15. Keep plans short.
+16. Return JSON only.
+17. Do not include markdown.
+18. Do not include explanations.
 
 Examples:
 
@@ -136,6 +144,47 @@ JSON:
         {
             "action": "open_app",
             "app": "notepad"
+        }
+    ]
+}
+
+User:
+send whatsapp to Rohan hello how are you
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "send_whatsapp",
+            "recipient": "Rohan",
+            "message": "hello how are you"
+        }
+    ]
+}
+
+User:
+send telegram to @alex meeting at 5
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "send_telegram",
+            "recipient": "@alex",
+            "message": "meeting at 5"
+        }
+    ]
+}
+
+User:
+open youtube
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "open_app",
+            "app": "youtube"
         }
     ]
 }

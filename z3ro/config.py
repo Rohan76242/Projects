@@ -141,6 +141,26 @@ class Config:
         in ("1", "true", "yes")
     )
 
+    # Messaging & System Permissions
+    WHATSAPP_ENABLED: bool = field(
+        default_factory=lambda: os.getenv("WHATSAPP_ENABLED", "true").lower() in ("1", "true", "yes")
+    )
+    TELEGRAM_ENABLED: bool = field(
+        default_factory=lambda: os.getenv("TELEGRAM_ENABLED", "true").lower() in ("1", "true", "yes")
+    )
+    MESSAGING_PERMISSION_GRANTED: bool = field(
+        default_factory=lambda: os.getenv("MESSAGING_PERMISSION_GRANTED", "true").lower() in ("1", "true", "yes")
+    )
+    APP_AUTO_PERMISSIONS: bool = field(
+        default_factory=lambda: os.getenv("APP_AUTO_PERMISSIONS", "true").lower() in ("1", "true", "yes")
+    )
+    TELEGRAM_BOT_TOKEN: Optional[str] = field(
+        default_factory=lambda: os.getenv("TELEGRAM_BOT_TOKEN")
+    )
+    TELEGRAM_CHAT_ID: Optional[str] = field(
+        default_factory=lambda: os.getenv("TELEGRAM_CHAT_ID")
+    )
+
     # Paths & Logging
     LOG_DIR: Path = field(default_factory=lambda: BASE_DIR / "logs")
     LOG_LEVEL: str = field(

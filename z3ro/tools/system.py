@@ -63,11 +63,37 @@ def open_app(
     clean_query = app.strip()
     lower_query = clean_query.lower()
 
-    # 1. Direct Web Platforms & Services (YouTube, Google, Reddit, etc.)
+    # 1. Native Standalone Desktop Apps (YouTube standalone app, WhatsApp, Telegram)
+    if lower_query in ("youtube", "yt", "you tube") or "youtube" in lower_query:
+        youtube_lnk = os.path.expandvars(r"%APPDATA%\Microsoft\Windows\Start Menu\Programs\Chrome Apps\YouTube.lnk")
+        if os.path.isfile(youtube_lnk):
+            try:
+                os.startfile(youtube_lnk)
+                return ToolResult(
+                    success=True,
+                    output="Opened YouTube.",
+                )
+            except Exception:
+                pass
+
+    if lower_query in ("whatsapp", "whats app", "wa"):
+        from z3ro.messaging.whatsapp import open_whatsapp
+        res = open_whatsapp()
+        return ToolResult(
+            success=res["success"],
+            output=res["output"],
+        )
+
+    if lower_query in ("telegram", "tele gram", "tg"):
+        from z3ro.messaging.telegram import open_telegram
+        res = open_telegram()
+        return ToolResult(
+            success=res["success"],
+            output=res["output"],
+        )
+
+    # 2. Direct Web Platforms & Services (Google, Reddit, etc.)
     WEB_PLATFORMS = {
-        "youtube": ("YouTube", "https://www.youtube.com"),
-        "yt": ("YouTube", "https://www.youtube.com"),
-        "you tube": ("YouTube", "https://www.youtube.com"),
         "google": ("Google", "https://www.google.com"),
         "github": ("GitHub", "https://www.github.com"),
         "reddit": ("Reddit", "https://www.reddit.com"),
@@ -77,7 +103,6 @@ def open_app(
         "twitch": ("Twitch", "https://www.twitch.tv"),
         "twitter": ("Twitter", "https://x.com"),
         "x": ("X", "https://x.com"),
-        "whatsapp": ("WhatsApp", "https://web.whatsapp.com"),
         "amazon": ("Amazon", "https://www.amazon.com"),
         "spotify web": ("Spotify", "https://open.spotify.com"),
         "wikipedia": ("Wikipedia", "https://www.wikipedia.org"),
@@ -91,7 +116,7 @@ def open_app(
             output=f"Opened {name}.",
         )
 
-    # 2. Direct URLs or Domain Requests
+    # 3. Direct URLs or Domain Requests
     if lower_query.startswith(("http://", "https://", "www.")) or (
         "." in lower_query and any(lower_query.endswith(ext) for ext in (".com", ".org", ".net", ".io", ".tv", ".ai", ".co"))
     ):
@@ -102,7 +127,7 @@ def open_app(
             output=f"Opened {clean_query}.",
         )
 
-    # 3. Local Desktop Applications Registry Lookup
+    # 4. Local Desktop Applications Registry Lookup
     catalog_app = find_app(clean_query)
     target_path = None
     app_name = clean_query
@@ -128,24 +153,16 @@ def open_app(
             ),
         )
 
-    # 4. Handle chrome_proxy web apps (e.g. YouTube PWA shortcut)
+    # 5. Launch Local Executable, UWP App, or System Utility
     lower_target = target_path.lower()
-    if lower_target.endswith("chrome_proxy.exe"):
-        if "youtube" in app_name.lower() or "youtube" in lower_query:
-            webbrowser.open("https://www.youtube.com")
-            return ToolResult(
-                success=True,
-                output="Opened YouTube.",
-            )
-
-    # 5. Launch Local Executable or System Utility
     try:
-        if lower_target.endswith(".msc"):
+        if lower_target.startswith("shell:appsfolder\\") or (catalog_app and catalog_app.kind == "app_id"):
+            uwp_target = target_path if target_path.lower().startswith("shell:") else f"shell:AppsFolder\\{target_path}"
+            subprocess.Popen(["explorer.exe", uwp_target])
+        elif lower_target.endswith(".msc"):
             subprocess.Popen(["mmc.exe", target_path])
         elif lower_target.endswith(".cpl"):
             subprocess.Popen(["control.exe", target_path])
-        elif catalog_app and catalog_app.kind == "app_id":
-            subprocess.Popen(["explorer.exe", f"shell:AppsFolder\\{target_path}"])
         else:
             try:
                 os.startfile(target_path)
@@ -523,6 +540,38 @@ def press_key(
     )
 
 
+def send_whatsapp_tool(recipient: str = "", message: str = "", **kwargs) -> ToolResult:
+    """Send a WhatsApp message to a contact or phone number."""
+    from z3ro.messaging.whatsapp import send_whatsapp
+    recip = recipient or kwargs.get("contact") or kwargs.get("to") or kwargs.get("phone", "")
+    msg = message or kwargs.get("text", "")
+    res = send_whatsapp(recip, msg)
+    return ToolResult(success=res["success"], output=res["output"])
+
+
+def open_whatsapp_tool(**kwargs) -> ToolResult:
+    """Open WhatsApp Desktop application."""
+    from z3ro.messaging.whatsapp import open_whatsapp
+    res = open_whatsapp()
+    return ToolResult(success=res["success"], output=res["output"])
+
+
+def send_telegram_tool(recipient: str = "", message: str = "", **kwargs) -> ToolResult:
+    """Send a Telegram message to a contact, username, or chat."""
+    from z3ro.messaging.telegram import send_telegram
+    recip = recipient or kwargs.get("contact") or kwargs.get("to") or kwargs.get("username", "")
+    msg = message or kwargs.get("text", "")
+    res = send_telegram(recip, msg)
+    return ToolResult(success=res["success"], output=res["output"])
+
+
+def open_telegram_tool(**kwargs) -> ToolResult:
+    """Open Telegram Desktop application."""
+    from z3ro.messaging.telegram import open_telegram
+    res = open_telegram()
+    return ToolResult(success=res["success"], output=res["output"])
+
+
 TOOLS = {
 
     "open_app": Tool(
@@ -531,6 +580,30 @@ TOOLS = {
             "Open an approved Windows application."
         ),
         function=open_app,
+    ),
+
+    "send_whatsapp": Tool(
+        name="send_whatsapp",
+        description="Send a message to a WhatsApp contact or phone number.",
+        function=send_whatsapp_tool,
+    ),
+
+    "open_whatsapp": Tool(
+        name="open_whatsapp",
+        description="Open the native WhatsApp desktop application.",
+        function=open_whatsapp_tool,
+    ),
+
+    "send_telegram": Tool(
+        name="send_telegram",
+        description="Send a message to a Telegram contact, username, or chat.",
+        function=send_telegram_tool,
+    ),
+
+    "open_telegram": Tool(
+        name="open_telegram",
+        description="Open the native Telegram desktop application.",
+        function=open_telegram_tool,
     ),
 
     "find_window": Tool(

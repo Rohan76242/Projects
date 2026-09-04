@@ -260,6 +260,23 @@ class UIBridgeServer:
         self.loop = asyncio.get_running_loop()
         self.initialize_components()
 
+        # Start real-time downloads and apps watcher with overlay notification
+        def on_app_detected(app_name: str, app_path: str):
+            if hasattr(self, "loop") and self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(
+                    self.broadcast({
+                        "type": "action",
+                        "description": f"Indexed {app_name}",
+                    }),
+                    self.loop,
+                )
+
+        try:
+            from z3ro.app_watcher import start_app_watcher
+            start_app_watcher(on_new_app=on_app_detected)
+        except Exception as e:
+            logger.debug(f"Could not start app watcher from UI bridge: {e}")
+
         logger.info(f"Starting UI Bridge server on ws://{self.host}:{self.port}")
         async with websockets.serve(self.handle_client, self.host, self.port):
             await asyncio.Future()  # run forever

@@ -64,6 +64,8 @@ class PlannedAction:
     x: Optional[int] = None
     y: Optional[int] = None
     button: Optional[str] = None
+    recipient: Optional[str] = None
+    message: Optional[str] = None
 
 
 @dataclass
@@ -83,6 +85,10 @@ class Planner:
         "move_mouse",
         "click_mouse",
         "double_click_mouse",
+        "send_whatsapp",
+        "open_whatsapp",
+        "send_telegram",
+        "open_telegram",
     }
 
     def parse(self, raw_text: str) -> Plan:
@@ -150,6 +156,8 @@ class Planner:
                     x=x,
                     y=y,
                     button=item.get("button"),
+                    recipient=item.get("recipient") or item.get("to") or item.get("contact"),
+                    message=item.get("message") or item.get("body") or item.get("text"),
                 )
             )
 

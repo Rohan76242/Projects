@@ -570,5 +570,8 @@ xmlwf | C:\Program Files\Git\mingw64\bin\xmlwf.exe
 xzcat | C:\Program Files\Git\mingw64\bin\xzcat.exe
 xzdec | C:\Program Files\Git\mingw64\bin\xzdec.exe
 yat2m | C:\Program Files\Git\usr\bin\yat2m.exe
-YouTube | C:\Program Files\Google\Chrome\Application\chrome_proxy.exe
+YouTube | C:\Users\Rohan\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Chrome Apps\YouTube.lnk
 zipinfo | C:\Program Files\Git\usr\bin\zipinfo.exe
+WhatsApp | shell:AppsFolder\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App
+Telegram | shell:AppsFolder\\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm!Telegram.TelegramDesktop
+Telegram Desktop | shell:AppsFolder\\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm!Telegram.TelegramDesktop

@@ -81,6 +81,9 @@ class Z3ROAgent:
         if action.action == "double_click_mouse":
             return True
 
+        if action.action in ("send_whatsapp", "open_whatsapp", "send_telegram", "open_telegram"):
+            return True
+
         return False
 
     def execute_action(
@@ -143,6 +146,26 @@ class Z3ROAgent:
             return execute_tool(
                 "double_click_mouse",
             )
+
+        if action.action == "send_whatsapp":
+            return execute_tool(
+                "send_whatsapp",
+                recipient=action.recipient or action.text,
+                message=action.message or action.text,
+            )
+
+        if action.action == "open_whatsapp":
+            return execute_tool("open_whatsapp")
+
+        if action.action == "send_telegram":
+            return execute_tool(
+                "send_telegram",
+                recipient=action.recipient or action.text,
+                message=action.message or action.text,
+            )
+
+        if action.action == "open_telegram":
+            return execute_tool("open_telegram")
 
         return None
 
