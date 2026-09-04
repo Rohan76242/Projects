@@ -1,11 +1,12 @@
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
 const path = require("path");
 
-// Optimize for high-refresh 120 FPS and smooth compositing
+// Optimize Chromium compositor for high-refresh 120 FPS liquid animation
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-zero-copy");
 app.commandLine.appendSwitch("ignore-gpu-blocklist");
-app.commandLine.appendSwitch("disable-gpu-vsync", "false"); // keep synced to 120Hz/144Hz monitor
+app.commandLine.appendSwitch("disable-gpu-vsync", "false");
+app.commandLine.appendSwitch("enable-features", "VaapiVideoDecoder,CanvasOopRasterization,UseSkiaRenderer");
 
 let mainWindow = null;
 
@@ -17,7 +18,7 @@ function createWindow() {
   const { width: screenWidth } = primaryDisplay.workAreaSize;
 
   const initialX = Math.round((screenWidth - CANVAS_WIDTH) / 2);
-  const initialY = 16; // 16px below top edge
+  const initialY = 16; // 16px floating below top screen border
 
   mainWindow = new BrowserWindow({
     width: CANVAS_WIDTH,
@@ -26,6 +27,7 @@ function createWindow() {
     y: initialY,
     frame: false,
     transparent: true,
+    backgroundColor: "#00000000",
     alwaysOnTop: true,
     skipTaskbar: false,
     resizable: false,
@@ -34,10 +36,12 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      backgroundThrottling: false, // Never drop frames when another app is focused
     },
   });
 
   mainWindow.setAlwaysOnTop(true, "screen-saver");
+  mainWindow.webContents.setFrameRate(120); // Force 120 FPS compositor refresh
   mainWindow.loadFile(path.join(__dirname, "index.html"));
 
   // Initial mouse passthrough outside island
