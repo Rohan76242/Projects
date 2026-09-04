@@ -1,6 +1,57 @@
 import json
+import re
 from dataclasses import dataclass
 from typing import Optional
+
+
+def extract_json(raw_text: str) -> dict:
+    """Extract the first valid JSON object from model output.
+
+    Handles common issues with small-model output:
+    - Markdown code fences (```json ... ```)
+    - Thinking preamble before the JSON
+    - Trailing explanation after the JSON
+    """
+
+    text = raw_text.strip()
+
+    # Strip markdown fences.
+    text = re.sub(
+        r"```(?:json)?\s*",
+        "",
+        text,
+    )
+
+    # Find the first '{' and the last matching '}'.
+    start = text.find("{")
+
+    if start == -1:
+        raise ValueError(
+            "No JSON object found in model output."
+        )
+
+    # Walk forward from start, counting braces.
+    depth = 0
+    end = start
+
+    for i in range(start, len(text)):
+
+        if text[i] == "{":
+            depth += 1
+
+        elif text[i] == "}":
+            depth -= 1
+
+            if depth == 0:
+                end = i
+                break
+
+    if depth != 0:
+        raise ValueError(
+            "Unbalanced braces in model output."
+        )
+
+    return json.loads(text[start : end + 1])
 
 
 @dataclass
@@ -36,7 +87,7 @@ class Planner:
 
     def parse(self, raw_text: str) -> Plan:
 
-        data = json.loads(raw_text)
+        data = extract_json(raw_text)
 
         if not isinstance(data, dict):
             raise ValueError(

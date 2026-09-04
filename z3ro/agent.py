@@ -318,7 +318,7 @@ if __name__ == "__main__":
     print("================================")
     print()
     print("Brain: Qwen 2.5 1.5B Instruct")
-    print("Vision: Qwen3-VL 2B")
+    print("Vision: Moondream")
     print("Windows grounding: ENABLED")
     print("Type 'exit' to quit.")
     print()

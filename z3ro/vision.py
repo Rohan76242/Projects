@@ -11,7 +11,7 @@ from z3ro.screen import Screen
 
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
-MODEL = "qwen3-vl:2b"
+MODEL = "moondream:latest"
 
 # Max width/height we resize screenshots to before sending to the model.
 # Smaller image = fewer prompt tokens = faster response.
