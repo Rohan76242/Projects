@@ -33,6 +33,37 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# -----------------------------------------------------------------------------
+# Auto-Environment Bootstrap (Ensures dependencies like numpy/torch are loaded)
+# -----------------------------------------------------------------------------
+def _bootstrap_environment():
+    """Detect if running outside the project virtualenv and auto-delegate."""
+    try:
+        import numpy  # Quick check for core ML dependency
+    except ModuleNotFoundError:
+        candidate_venvs = [
+            PROJECT_ROOT / ".venv" / "Scripts" / "python.exe",
+            PROJECT_ROOT.parent / ".venv" / "Scripts" / "python.exe",
+            Path(r"C:\sobia\.venv\Scripts\python.exe"),
+        ]
+        current_exe = Path(sys.executable).resolve()
+
+        for venv_py in candidate_venvs:
+            if venv_py.is_file() and venv_py.resolve() != current_exe:
+                import subprocess
+                try:
+                    res = subprocess.call([str(venv_py)] + sys.argv)
+                    sys.exit(res)
+                except Exception as err:
+                    print(f"Failed to auto-switch to virtualenv ({venv_py}): {err}")
+
+        # If no venv found, add site-packages if it exists
+        venv_site = Path(r"C:\sobia\.venv\Lib\site-packages")
+        if venv_site.is_dir() and str(venv_site) not in sys.path:
+            sys.path.insert(0, str(venv_site))
+
+_bootstrap_environment()
+
 # Ensure safe console output encoding on Windows
 try:
     if hasattr(sys.stdout, "reconfigure"):

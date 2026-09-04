@@ -13,6 +13,28 @@ import os
 import sys
 import time
 import argparse
+from pathlib import Path
+
+# Auto-Environment Bootstrap (Ensures dependencies like numpy/torch are loaded)
+def _bootstrap_environment():
+    try:
+        import numpy
+    except ModuleNotFoundError:
+        candidate_venvs = [
+            Path(r"C:\sobia\.venv\Scripts\python.exe"),
+            Path(__file__).resolve().parent.parent / ".venv" / "Scripts" / "python.exe",
+        ]
+        current_exe = Path(sys.executable).resolve()
+        for venv_py in candidate_venvs:
+            if venv_py.is_file() and venv_py.resolve() != current_exe:
+                import subprocess
+                try:
+                    res = subprocess.call([str(venv_py)] + sys.argv)
+                    sys.exit(res)
+                except Exception:
+                    pass
+
+_bootstrap_environment()
 
 from z3ro.config import config
 
