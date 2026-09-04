@@ -7,6 +7,9 @@ required.
 import pyttsx3
 
 
+from z3ro.config import config
+
+
 class TTS:
     """Offline text-to-speech using pyttsx3."""
 
@@ -17,13 +20,13 @@ class TTS:
         # Slightly faster than default
         self.engine.setProperty(
             "rate",
-            180,
+            config.TTS_RATE,
         )
 
         # Lower volume so it doesn't blast
         self.engine.setProperty(
             "volume",
-            0.9,
+            config.TTS_VOLUME,
         )
 
     def say(self, text: str):
@@ -32,5 +35,12 @@ class TTS:
         if not text:
             return
 
-        self.engine.say(text)
-        self.engine.runAndWait()
+        try:
+            self.engine.say(text)
+            self.engine.runAndWait()
+        except Exception as e:
+            print(f"  [TTS warning] {e}")
+
+    def speak(self, text: str):
+        """Speak text aloud (alias for say)."""
+        self.say(text)
