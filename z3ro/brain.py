@@ -3,8 +3,58 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import List, Dict
 
+import re
 from z3ro.app_catalog import app_catalog_prompt
 from z3ro.config import config
+
+
+DEVELOPER_INTRO = (
+    "SOBIA was created by **Rohan** — a developer passionate about technology, "
+    "artificial intelligence, and building systems that make everyday life simpler.\n\n"
+    "What started as an idea became SOBIA: a personal AI designed to understand, "
+    "assist, and grow alongside its creator.\n\n"
+    "**Built with curiosity. Driven by innovation.**"
+)
+
+IDENTITY_PATTERNS = (
+    "who are you",
+    "who r u",
+    "who created you",
+    "who made you",
+    "who is your creator",
+    "who is your developer",
+    "who is the developer",
+    "who built you",
+    "who designed you",
+    "intro of the developer",
+    "intro of developer",
+    "developer intro",
+    "tell me about the developer",
+    "tell me about your developer",
+    "tell me about your creator",
+    "tell me about yourself",
+    "who programmed you",
+    "what is sobia",
+    "who is sobia",
+    "introduce yourself",
+)
+
+
+def is_identity_request(text: str) -> bool:
+    """Check if the user is asking about the assistant's identity, creator, or developer."""
+    if not text:
+        return False
+    cleaned = re.sub(r"[^\w\s]", "", text.lower()).strip()
+    if any(p in cleaned for p in IDENTITY_PATTERNS):
+        return True
+    words = set(cleaned.split())
+    if "who" in words and any(w in words for w in ("you", "u", "sobia", "z3ro")):
+        return True
+    if any(w in words for w in ("developer", "creator")) and any(
+        w in words for w in ("who", "intro", "introduction", "tell", "about", "your", "the")
+    ):
+        return True
+    return False
 
 
 @dataclass
@@ -26,11 +76,17 @@ class LocalBrain:
 
     def chat(self, user_input: str, system_prompt: str = None) -> BrainResult:
         """Generate a natural conversational spoken response using Qwen 2.5 1.5B."""
+        # 1. Immediate deterministic answer for developer intro / identity
+        if is_identity_request(user_input):
+            return BrainResult(success=True, text=DEVELOPER_INTRO)
+
         if not system_prompt:
             name = config.ASSISTANT_NAME
             system_prompt = (
-                f"You are {name}, a helpful, intelligent, and friendly desktop voice assistant. "
-                "You communicate naturally with the user through spoken conversation. "
+                f"You are {name} (SOBIA), an intelligent desktop AI assistant created by Rohan. "
+                "Rohan is a developer passionate about technology, artificial intelligence, and building systems that make everyday life simpler. "
+                "What started as an idea became SOBIA: a personal AI designed to understand, assist, and grow alongside its creator. "
+                "Built with curiosity. Driven by innovation. "
                 "Keep your answers concise, warm, helpful, and natural (1 to 3 sentences max). "
                 "Never use markdown formatting, bullet points, asterisks, or code blocks in spoken responses."
             )

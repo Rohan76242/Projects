@@ -428,6 +428,18 @@
       .replace(/'/g, "&#039;");
   }
 
+  function formatMessageText(str) {
+    if (!str) return "";
+    let safe = escapeHtml(str);
+    // Convert **bold** to <strong>bold</strong>
+    safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    // Convert *italic* to <em>italic</em>
+    safe = safe.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    // Convert `code` to <code>code</code>
+    safe = safe.replace(/`([^`]+)`/g, "<code>$1</code>");
+    return safe;
+  }
+
   function appendMessage(role, text, isVoice = false) {
     if (!messageList) return;
 
@@ -449,9 +461,9 @@
     textSpan.className = "msg-text";
 
     if (isVoice) {
-      textSpan.innerHTML = `<span style="opacity: 0.6; margin-right: 4px;">🎙️</span>${escapeHtml(text)}`;
+      textSpan.innerHTML = `<span style="opacity: 0.6; margin-right: 4px;">🎙️</span>${formatMessageText(text)}`;
     } else {
-      textSpan.textContent = text;
+      textSpan.innerHTML = formatMessageText(text);
     }
 
     msgEl.appendChild(textSpan);

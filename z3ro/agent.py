@@ -1,6 +1,6 @@
 import time
 
-from z3ro.brain import LocalBrain
+from z3ro.brain import LocalBrain, DEVELOPER_INTRO, is_identity_request
 from z3ro.planner import Planner
 from z3ro.tools.system import execute_tool
 from z3ro.window import is_window_focused
@@ -362,6 +362,11 @@ No explanation.
         user_input: str,
     ):
         t_total = time.perf_counter()
+
+        # 0. Immediate response for developer intro & identity
+        if is_identity_request(user_input):
+            print(f"  [identity] Developer intro matched -> {time.perf_counter() - t_total:.4f}s")
+            return [DEVELOPER_INTRO]
 
         # 1. If it's a conversational question / greeting, chat directly with Qwen!
         if not self.is_action_request(user_input):
