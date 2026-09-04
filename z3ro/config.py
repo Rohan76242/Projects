@@ -100,7 +100,7 @@ class Config:
 
     # Speech to Text (Whisper)
     STT_MODEL_SIZE: str = field(
-        default_factory=lambda: os.getenv("STT_MODEL_SIZE", "base.en")
+        default_factory=lambda: os.getenv("STT_MODEL_SIZE", "small")
     )
     STT_DEVICE: str = field(
         default_factory=lambda: os.getenv("STT_DEVICE", "cpu")

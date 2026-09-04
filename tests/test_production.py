@@ -79,6 +79,25 @@ class ProductionBuildTests(unittest.TestCase):
         self.assertTrue(len(results) > 0)
         self.assertEqual(results[0], "App opened")
 
+    @patch("z3ro.voice.stt.WhisperModel")
+    def test_stt_transcribe(self, mock_whisper_cls):
+        """Test STT transcribe handles silence and arrays."""
+        import numpy as np
+        from z3ro.voice.stt import STT
+
+        mock_instance = MagicMock()
+        mock_instance.transcribe.return_value = ([MagicMock(text="hello world")], None)
+        mock_whisper_cls.return_value = mock_instance
+
+        stt = STT()
+        # Test silence array returns empty string without calling model
+        silence = np.zeros(16000, dtype=np.float32)
+        self.assertEqual(stt.transcribe(silence), "")
+
+        # Test valid audio array returns transcribed text
+        audio = np.ones(16000, dtype=np.float32) * 0.1
+        self.assertEqual(stt.transcribe(audio), "hello world")
+
 
 if __name__ == "__main__":
     unittest.main()
