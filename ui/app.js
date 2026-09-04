@@ -54,40 +54,38 @@
     if (isExpanded) {
       island.classList.remove("collapsed");
       island.classList.add("expanded");
+      // Delay focusing until transition completes to ensure 100% fluid extrusion without layout reflow
       setTimeout(() => {
         if (chatInput) chatInput.focus();
         scrollToBottom();
-      }, 100);
+      }, 340);
     } else {
       island.classList.remove("expanded");
       island.classList.add("collapsed");
+      if (chatInput) chatInput.blur();
     }
   }
 
-  // Mouse passthrough management: Only capture clicks when hovering over the Island
+  // High-performance mouse passthrough: avoids getBoundingClientRect() layout thrashing
   let isMouseOverIsland = false;
-  window.addEventListener("mousemove", (event) => {
-    if (!island) return;
-    const rect = island.getBoundingClientRect();
-    const inside = (
-      event.clientX >= rect.left &&
-      event.clientX <= rect.right &&
-      event.clientY >= rect.top &&
-      event.clientY <= rect.bottom
-    );
-
-    if (inside && !isMouseOverIsland) {
-      isMouseOverIsland = true;
-      if (window.electronAPI && window.electronAPI.setIgnoreMouseEvents) {
-        window.electronAPI.setIgnoreMouseEvents(false);
+  window.addEventListener(
+    "mousemove",
+    (event) => {
+      const inside = Boolean(event.target && event.target.closest && event.target.closest("#island"));
+      if (inside && !isMouseOverIsland) {
+        isMouseOverIsland = true;
+        if (window.electronAPI && window.electronAPI.setIgnoreMouseEvents) {
+          window.electronAPI.setIgnoreMouseEvents(false);
+        }
+      } else if (!inside && isMouseOverIsland) {
+        isMouseOverIsland = false;
+        if (window.electronAPI && window.electronAPI.setIgnoreMouseEvents) {
+          window.electronAPI.setIgnoreMouseEvents(true, true);
+        }
       }
-    } else if (!inside && isMouseOverIsland) {
-      isMouseOverIsland = false;
-      if (window.electronAPI && window.electronAPI.setIgnoreMouseEvents) {
-        window.electronAPI.setIgnoreMouseEvents(true, true);
-      }
-    }
-  });
+    },
+    { passive: true }
+  );
 
 
   if (btnExpand) {

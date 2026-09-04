@@ -1,12 +1,10 @@
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
 const path = require("path");
 
-// Optimize Chromium compositor for high-refresh 120 FPS liquid animation
+// Optimize Chromium GPU compositing for ultra-smooth fluid animation
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-zero-copy");
 app.commandLine.appendSwitch("ignore-gpu-blocklist");
-app.commandLine.appendSwitch("disable-gpu-vsync", "false");
-app.commandLine.appendSwitch("enable-features", "VaapiVideoDecoder,CanvasOopRasterization,UseSkiaRenderer");
 
 let mainWindow = null;
 
@@ -41,7 +39,6 @@ function createWindow() {
   });
 
   mainWindow.setAlwaysOnTop(true, "screen-saver");
-  mainWindow.webContents.setFrameRate(120); // Force 120 FPS compositor refresh
   mainWindow.loadFile(path.join(__dirname, "index.html"));
 
   // Initial mouse passthrough outside island

@@ -17,25 +17,14 @@
   --accent-rose: #ef4444;
 
   /* ========================================================================
-     AUTHENTIC APPLE DYNAMIC ISLAND SPRING PHYSICS (linear() simulation)
-     Calculated with mass: 1.0, stiffness: 220, damping: 21 (subtle fluid bounce)
+     HARDWARE-ACCELERATED SPRING PHYSICS & DECELERATION
+     Ultra-low latency GPU compositor curves (zero frame drop)
      ======================================================================== */
-  --spring-bounce: linear(
-    0, 0.007, 0.029 2.2%, 0.118 4.7%, 0.625 14.4%, 0.826 19%, 0.902 21.4%, 
-    0.962 24%, 1.006 27.2%, 1.034 30.5%, 1.047 33.9%, 1.048 37.4%, 
-    1.038 41.7%, 1.008 51.5%, 0.997 59.2%, 0.996 66.8%, 1.001 79.5%, 1
-  );
-
-  /* Clean Snappy Retraction Spring Curve for Closing */
-  --spring-retract: linear(
-    0, 0.011, 0.046 3.1%, 0.177 6.8%, 0.741 20.3%, 0.904 26.6%, 0.963 32.1%,
-    0.988 38%, 0.998 44.7%, 1.001 52.8%, 1
-  );
-
-  /* Tactile button micro-spring */
-  --spring-touch: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-bounce: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring-retract: cubic-bezier(0.25, 1, 0.5, 1);
+  --spring-touch: cubic-bezier(0.2, 0.9, 0.2, 1);
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 0.14s ease;
+  --transition-fast: 0.12s ease;
 }
 
 * {
@@ -67,22 +56,19 @@ body {
   position: relative;
   background: var(--bg-matte);
   border: 1px solid var(--border-matte);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   box-shadow: 
-    0 24px 60px -8px rgba(0, 0, 0, 0.96),
-    0 8px 24px -4px rgba(0, 0, 0, 0.85),
+    0 22px 50px -8px rgba(0, 0, 0, 0.94),
+    0 8px 20px -4px rgba(0, 0, 0, 0.82),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* GPU Compositing Layer Promotion */
+  /* Hardware Composited Layer Isolation */
   transform: translate3d(0, 0, 0);
   transform-origin: top center;
   backface-visibility: hidden;
-  perspective: 1000px;
-  contain: layout paint;
-  will-change: width, height, border-radius, transform;
+  contain: paint;
+  will-change: width, height, border-radius;
 }
 
 .island:hover {
@@ -104,11 +90,10 @@ body {
   height: 44px;
   border-radius: 9999px;
   transition: 
-    width 0.36s var(--spring-retract),
-    height 0.36s var(--spring-retract),
-    border-radius 0.28s var(--ease-smooth),
-    border-color var(--transition-fast),
-    box-shadow 0.3s ease;
+    width 0.30s var(--spring-retract),
+    height 0.30s var(--spring-retract),
+    border-radius 0.24s var(--ease-smooth),
+    border-color var(--transition-fast);
 }
 
 /* Expanded Chat Drawer State */
@@ -117,11 +102,10 @@ body {
   height: 450px;
   border-radius: 24px;
   transition: 
-    width 0.46s var(--spring-bounce),
-    height 0.46s var(--spring-bounce),
-    border-radius 0.36s var(--ease-smooth),
-    border-color var(--transition-fast),
-    box-shadow 0.35s ease;
+    width 0.36s var(--spring-bounce),
+    height 0.36s var(--spring-bounce),
+    border-radius 0.28s var(--ease-smooth),
+    border-color var(--transition-fast);
 }
 
 /* ==========================================================================
@@ -235,7 +219,6 @@ body {
   transform: translate3d(0, 0, 0) scaleY(0.2);
   transform-origin: center center;
   will-change: transform;
-  transition: transform 0.06s cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
 /* Thinking Animation (Organic Harmonic Floating Nodes) */
@@ -380,22 +363,22 @@ body {
   flex-direction: column;
   overflow: hidden;
   opacity: 0;
-  transform: translate3d(0, -12px, 0) scale(0.96);
-  transform-origin: top center;
+  transform: translate3d(0, -8px, 0);
   pointer-events: none;
+  contain: paint;
   transition: 
     opacity 0.16s ease,
-    transform 0.32s var(--spring-retract);
+    transform 0.26s var(--spring-retract);
   -webkit-app-region: no-drag;
 }
 
 .island.expanded .chat-drawer {
   opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
+  transform: translate3d(0, 0, 0);
   pointer-events: auto;
   transition: 
-    opacity 0.28s var(--ease-smooth) 0.06s,
-    transform 0.46s var(--spring-bounce);
+    opacity 0.24s var(--ease-smooth) 0.04s,
+    transform 0.34s var(--spring-bounce);
 }
 
 /* Message List */
@@ -432,17 +415,17 @@ body {
   padding: 20px 16px;
   pointer-events: none;
   user-select: none;
-  animation: heroEntrance 0.5s var(--ease-smooth);
+  animation: heroEntrance 0.36s var(--ease-smooth);
 }
 
 @keyframes heroEntrance {
   from {
     opacity: 0;
-    transform: translate3d(0, 10px, 0) scale(0.96);
+    transform: translate3d(0, 8px, 0);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -461,18 +444,19 @@ body {
   height: 120px;
   object-fit: contain;
   opacity: 0.36;
-  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.08));
-  animation: heroFloat 5s ease-in-out infinite alternate;
+  animation: heroFloat 4.5s ease-in-out infinite alternate;
+  transform: translate3d(0, 0, 0);
   will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 @keyframes heroFloat {
   0% {
-    transform: translate3d(0, 0, 0) scale(0.98);
+    transform: translate3d(0, 0, 0);
     opacity: 0.32;
   }
   100% {
-    transform: translate3d(0, -7px, 0) scale(1.02);
+    transform: translate3d(0, -6px, 0);
     opacity: 0.44;
   }
 }
