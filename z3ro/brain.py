@@ -2,12 +2,13 @@ import json
 import urllib.request
 from dataclasses import dataclass
 
+from z3ro.app_catalog import app_catalog_prompt
 
 OLLAMA_URL = (
     "http://127.0.0.1:11434/api/generate"
 )
 
-MODEL = "qwen3:1.7b"
+MODEL = "qwen2.5:1.5b-instruct"
 
 # Cap tokens so a call can't run away if the model
 # insists on "thinking" before answering (same issue
@@ -142,7 +143,11 @@ JSON:
 
             payload = {
                 "model": MODEL,
-                "system": self.SYSTEM_PROMPT,
+                "system": (
+                    self.SYSTEM_PROMPT
+                    + "\n\n"
+                    + app_catalog_prompt()
+                ),
                 "prompt": user_input,
                 "stream": False,
                 "options": {

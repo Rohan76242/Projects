@@ -4,6 +4,10 @@ import subprocess
 
 import pyautogui
 
+from z3ro.app_catalog import (
+    enabled_apps,
+    find_app,
+)
 from z3ro.window import (
     focus_window,
     list_windows,
@@ -45,18 +49,7 @@ class Tool:
 def open_app(
     app: str,
 ) -> ToolResult:
-    """Open an approved Windows application."""
-
-    allowed_apps = {
-        "notepad": "notepad.exe",
-        "calculator": "calc.exe",
-        "paint": "mspaint.exe",
-        "explorer": "explorer.exe",
-        "chrome": (
-            r"C:\Program Files\Google\Chrome"
-            r"\Application\chrome.exe"
-        ),
-    }
+    """Open an app from Z3RO's explicit Start-menu catalogue."""
 
     if not isinstance(app, str):
 
@@ -65,28 +58,48 @@ def open_app(
             output="Application name must be a string.",
         )
 
-    app_key = app.lower().strip()
+    catalog_app = find_app(app)
 
-    if app_key not in allowed_apps:
+    if catalog_app is None:
+        available_count = len(enabled_apps())
 
         return ToolResult(
             success=False,
             output=(
                 f"Application '{app}' "
-                "is not in the allowed app list."
+                "is not in Z3RO's app catalogue. "
+                f"Choose one of the {available_count} enabled apps."
             ),
         )
+
+    if catalog_app.status != "enabled":
+
+        return ToolResult(
+            success=False,
+            output=(
+                f"{catalog_app.name} is listed in the "
+                f"catalogue but is {catalog_app.status}."
+            ),
+        )
+
+    if catalog_app.kind == "app_id":
+        command = [
+            "explorer.exe",
+            f"shell:AppsFolder\\{catalog_app.target}",
+        ]
+    else:
+        command = [catalog_app.target]
 
     try:
 
         subprocess.Popen(
-            [allowed_apps[app_key]],
+            command,
             shell=False,
         )
 
         return ToolResult(
             success=True,
-            output=f"Opened {app_key}.",
+            output=f"Opened {catalog_app.name}.",
         )
 
     except FileNotFoundError:
@@ -94,7 +107,7 @@ def open_app(
         return ToolResult(
             success=False,
             output=(
-                f"{app_key} is not installed "
+                f"{catalog_app.name} is not installed "
                 "or could not be found."
             ),
         )

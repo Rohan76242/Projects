@@ -317,7 +317,7 @@ if __name__ == "__main__":
     print("          Z3RO AGENT")
     print("================================")
     print()
-    print("Brain: Qwen3 1.7B")
+    print("Brain: Qwen 2.5 1.5B Instruct")
     print("Vision: Qwen3-VL 2B")
     print("Windows grounding: ENABLED")
     print("Type 'exit' to quit.")
