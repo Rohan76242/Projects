@@ -284,22 +284,48 @@ No explanation.
 
         return results
 
+    ACTION_KEYWORDS = {
+        "open", "launch", "start", "run",
+        "close", "quit", "exit", "kill",
+        "focus", "switch", "bring up",
+        "minimize", "maximize", "restore",
+        "find", "show windows", "list windows",
+        "type", "write", "enter",
+        "press", "hotkey",
+        "click", "double click", "move mouse",
+    }
+
+    def is_action_request(self, text: str) -> bool:
+        """Determine if user input is an OS action or conversation."""
+        lowered = text.lower().strip()
+        words = set(lowered.split())
+        if bool(words & self.ACTION_KEYWORDS):
+            return True
+        phrases = ("list windows", "find window", "double click", "switch to", "bring up")
+        return any(phrase in lowered for phrase in phrases)
+
     def handle(
         self,
         user_input: str,
     ):
-
         t_total = time.perf_counter()
 
-        plan, error = self.build_plan(
-            user_input
-        )
+        # 1. If it's a conversational question / greeting, chat directly with Qwen!
+        if not self.is_action_request(user_input):
+            chat_res = self.brain.chat(user_input)
+            if chat_res.success:
+                print(f"  [timing] Qwen chat: {time.perf_counter() - t_total:.2f}s")
+                return [chat_res.text]
 
-        if error:
+        # 2. If it's an action request, plan and execute the computer tool steps
+        plan, error = self.build_plan(user_input)
 
-            return [
-                f"Planning error: {error}"
-            ]
+        if error or not plan or not plan.actions:
+            # Fall back to conversational response if planning finds no actions
+            chat_res = self.brain.chat(user_input)
+            if chat_res.success:
+                return [chat_res.text]
+            return [f"Planning error: {error}"] if error else ["I'm not sure how to do that on your computer."]
 
         results = self.execute_plan(
             plan,
@@ -307,7 +333,6 @@ No explanation.
         )
 
         print(f"  [timing] TOTAL turn: {time.perf_counter() - t_total:.2f}s")
-
         return results
 
     def run(self, user_input: str):

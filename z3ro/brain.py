@@ -1,24 +1,10 @@
 import json
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List, Dict
 
 from z3ro.app_catalog import app_catalog_prompt
-
-OLLAMA_URL = (
-    "http://127.0.0.1:11434/api/generate"
-)
-
-MODEL = "qwen2.5:1.5b-instruct"
-
-# Cap tokens so a call can't run away if the model
-# insists on "thinking" before answering (same issue
-# we found with the vision model). If responses come
-# back empty, raise this.
-NUM_PREDICT = 700
-
-# Small context is enough for a system prompt + one
-# short user instruction.
-NUM_CTX = 2048
+from z3ro.config import config
 
 
 @dataclass
@@ -29,7 +15,67 @@ class BrainResult:
 
 
 class LocalBrain:
-    """Z3RO's local reasoning brain."""
+    """Z3RO / SOBIA local reasoning and conversational chat brain."""
+
+    def __init__(self, model: str = None, host: str = None):
+        self.model = model or config.BRAIN_MODEL
+        self.host = host or config.OLLAMA_HOST
+        self.generate_url = f"{self.host}/api/generate"
+        self.chat_url = f"{self.host}/api/chat"
+        self.history: List[Dict[str, str]] = []
+
+    def chat(self, user_input: str, system_prompt: str = None) -> BrainResult:
+        """Generate a natural conversational spoken response using Qwen 2.5 1.5B."""
+        if not system_prompt:
+            name = config.ASSISTANT_NAME
+            system_prompt = (
+                f"You are {name}, a helpful, intelligent, and friendly desktop voice assistant. "
+                "You communicate naturally with the user through spoken conversation. "
+                "Keep your answers concise, warm, helpful, and natural (1 to 3 sentences max). "
+                "Never use markdown formatting, bullet points, asterisks, or code blocks in spoken responses."
+            )
+
+        messages = [{"role": "system", "content": system_prompt}]
+        # Keep last 6 conversational turns for context
+        for turn in self.history[-6:]:
+            messages.append(turn)
+        messages.append({"role": "user", "content": user_input})
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "stream": False,
+            "options": {
+                "num_predict": 250,
+                "temperature": 0.7,
+            },
+        }
+
+        try:
+            req = urllib.request.Request(
+                self.chat_url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                reply = data.get("message", {}).get("content", "").strip()
+
+            if not reply:
+                return BrainResult(success=False, error="Empty response from chat model")
+
+            # Clean reply so it speaks naturally without asterisks or markdown
+            clean_reply = reply.replace("*", "").replace("`", "").replace("#", "").strip()
+
+            # Record in history
+            self.history.append({"role": "user", "content": user_input})
+            self.history.append({"role": "assistant", "content": clean_reply})
+
+            return BrainResult(success=True, text=clean_reply)
+
+        except Exception as e:
+            return BrainResult(success=False, error=str(e))
 
     SYSTEM_PROMPT = """
 You are Z3RO, a local Windows computer-control agent.
@@ -142,7 +188,7 @@ JSON:
         try:
 
             payload = {
-                "model": MODEL,
+                "model": self.model,
                 "system": (
                     self.SYSTEM_PROMPT
                     + "\n\n"
@@ -151,8 +197,8 @@ JSON:
                 "prompt": user_input,
                 "stream": False,
                 "options": {
-                    "num_predict": NUM_PREDICT,
-                    "num_ctx": NUM_CTX,
+                    "num_predict": config.NUM_PREDICT,
+                    "num_ctx": config.NUM_CTX,
                 },
             }
 
@@ -161,7 +207,7 @@ JSON:
             ).encode("utf-8")
 
             request = urllib.request.Request(
-                OLLAMA_URL,
+                self.generate_url,
                 data=data,
                 headers={
                     "Content-Type": "application/json"

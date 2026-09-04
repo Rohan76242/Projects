@@ -201,20 +201,12 @@ def run_voice_mode():
                 f"{elapsed:.2f}s"
             )
 
-            # Step 5: Speak summary
+            # Step 5: Speak response
             if results:
-
-                last = results[-1]
-
-                # Keep spoken response short
-                if len(last) > 80:
-                    last = last[:80]
-
-                tts.say(f"Done. {last}")
-
+                response_text = " ".join(results)
+                tts.speak(response_text)
             else:
-
-                tts.say("Done.")
+                tts.speak("I'm not sure how to answer that.")
 
             print()
 
