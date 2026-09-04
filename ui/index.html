@@ -12,8 +12,9 @@
     <div id="island-header" class="island-header">
       <!-- Left: Identity & Status Indicator -->
       <div class="header-left">
+        <img src="assets/logo.png" alt="AI Emblem" class="pill-logo" />
         <span id="status-orb" class="status-orb idle"></span>
-        <span id="brand-name" class="brand-name">SOBIA</span>
+        <span id="brand-name" class="brand-name">Z3RO</span>
       </div>
 
       <!-- Center: Dynamic Morphing State (Wave / Thinking / Action) -->
@@ -78,8 +79,15 @@
     <div id="chat-drawer" class="chat-drawer">
       <!-- Message Stream -->
       <div id="message-list" class="message-list">
-        <div class="message assistant system-welcome">
-          <span class="msg-text">SOBIA is online. Ask a question or command desktop actions.</span>
+        <!-- Centered AI Logo & Greeting -->
+        <div id="welcome-hero" class="welcome-hero">
+          <div class="hero-logo-wrapper">
+            <img src="assets/logo.png" alt="AI Emblem" class="hero-logo" />
+          </div>
+          <div class="hero-text-block">
+            <h2 class="greeting-name">Hello Rohan</h2>
+            <p class="greeting-subtitle">what can I do for you?</p>
+          </div>
         </div>
       </div>
 
@@ -89,7 +97,7 @@
           type="text"
           id="chat-input"
           class="chat-input"
-          placeholder="Ask or command anything..."
+          placeholder="Hello Rohan, what can I do for you..."
           autocomplete="off"
         />
         <button type="button" id="btn-input-mic" class="btn-icon btn-input-mic" title="Voice Input">

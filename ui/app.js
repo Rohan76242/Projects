@@ -438,6 +438,12 @@
       toggleDrawer(true);
     }
 
+    // Hide welcome hero on first message
+    const welcomeHero = document.getElementById("welcome-hero");
+    if (welcomeHero) {
+      welcomeHero.style.display = "none";
+    }
+
     const msgEl = document.createElement("div");
     msgEl.className = `message ${role}`;
 
