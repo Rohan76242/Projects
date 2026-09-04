@@ -52,27 +52,43 @@
     isExpanded = nextState;
 
     if (isExpanded) {
-      // First tell Electron main process to enlarge transparent container
-      if (window.electronAPI && window.electronAPI.setWindowSize) {
-        window.electronAPI.setWindowSize(EXPANDED_WIDTH, EXPANDED_HEIGHT);
-      }
       island.classList.remove("collapsed");
       island.classList.add("expanded");
       setTimeout(() => {
         if (chatInput) chatInput.focus();
         scrollToBottom();
-      }, 180);
+      }, 100);
     } else {
       island.classList.remove("expanded");
       island.classList.add("collapsed");
-      // Delay resize slightly so collapse transition completes smoothly
-      setTimeout(() => {
-        if (window.electronAPI && window.electronAPI.setWindowSize) {
-          window.electronAPI.setWindowSize(COLLAPSED_WIDTH, COLLAPSED_HEIGHT);
-        }
-      }, 250);
     }
   }
+
+  // Mouse passthrough management: Only capture clicks when hovering over the Island
+  let isMouseOverIsland = false;
+  window.addEventListener("mousemove", (event) => {
+    if (!island) return;
+    const rect = island.getBoundingClientRect();
+    const inside = (
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom
+    );
+
+    if (inside && !isMouseOverIsland) {
+      isMouseOverIsland = true;
+      if (window.electronAPI && window.electronAPI.setIgnoreMouseEvents) {
+        window.electronAPI.setIgnoreMouseEvents(false);
+      }
+    } else if (!inside && isMouseOverIsland) {
+      isMouseOverIsland = false;
+      if (window.electronAPI && window.electronAPI.setIgnoreMouseEvents) {
+        window.electronAPI.setIgnoreMouseEvents(true, true);
+      }
+    }
+  });
+
 
   if (btnExpand) {
     btnExpand.addEventListener("click", (e) => {

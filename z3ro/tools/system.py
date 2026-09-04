@@ -49,68 +49,67 @@ class Tool:
 def open_app(
     app: str,
 ) -> ToolResult:
-    """Open an app from Z3RO's explicit Start-menu catalogue."""
+    """Open any application, driver tool, or executable from the PC apps registry."""
+    import os
+    import shutil
 
-    if not isinstance(app, str):
-
+    if not isinstance(app, str) or not app.strip():
         return ToolResult(
             success=False,
-            output="Application name must be a string.",
+            output="Application name must be a non-empty string.",
         )
 
-    catalog_app = find_app(app)
+    clean_query = app.strip()
+    catalog_app = find_app(clean_query)
+    target_path = None
+    app_name = clean_query
 
-    if catalog_app is None:
-        available_count = len(enabled_apps())
-
-        return ToolResult(
-            success=False,
-            output=(
-                f"Application '{app}' "
-                "is not in Z3RO's app catalogue. "
-                f"Choose one of the {available_count} enabled apps."
-            ),
-        )
-
-    if catalog_app.status != "enabled":
-
-        return ToolResult(
-            success=False,
-            output=(
-                f"{catalog_app.name} is listed in the "
-                f"catalogue but is {catalog_app.status}."
-            ),
-        )
-
-    if catalog_app.kind == "app_id":
-        command = [
-            "explorer.exe",
-            f"shell:AppsFolder\\{catalog_app.target}",
-        ]
+    if catalog_app is not None:
+        target_path = catalog_app.target
+        app_name = catalog_app.name
+    elif os.path.isfile(clean_query):
+        target_path = clean_query
     else:
-        command = [catalog_app.target]
+        # Fallback to system PATH lookup
+        found_bin = shutil.which(clean_query) or shutil.which(f"{clean_query}.exe")
+        if found_bin:
+            target_path = found_bin
+
+    if not target_path:
+        available_count = len(enabled_apps())
+        return ToolResult(
+            success=False,
+            output=(
+                f"Application '{clean_query}' was not found in apps.txt "
+                f"({available_count} applications and tools available)."
+            ),
+        )
 
     try:
-
-        subprocess.Popen(
-            command,
-            shell=False,
-        )
+        lower_target = target_path.lower()
+        if lower_target.endswith(".msc"):
+            subprocess.Popen(["mmc.exe", target_path])
+        elif lower_target.endswith(".cpl"):
+            subprocess.Popen(["control.exe", target_path])
+        elif catalog_app and catalog_app.kind == "app_id":
+            subprocess.Popen(["explorer.exe", f"shell:AppsFolder\\{target_path}"])
+        else:
+            try:
+                os.startfile(target_path)
+            except Exception:
+                subprocess.Popen([target_path], shell=False)
 
         return ToolResult(
             success=True,
-            output=f"Opened {catalog_app.name}.",
+            output=f"Opened {app_name} ({target_path}).",
         )
 
-    except FileNotFoundError:
-
+    except Exception as e:
         return ToolResult(
             success=False,
-            output=(
-                f"{catalog_app.name} is not installed "
-                "or could not be found."
-            ),
+            output=f"Failed to launch {app_name}: {e}",
         )
+
 
 
 def find_window_tool(

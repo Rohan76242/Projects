@@ -3,7 +3,7 @@
    ========================================================================== */
 
 :root {
-  --bg-glass: rgba(13, 13, 16, 0.90);
+  --bg-glass: rgba(14, 14, 18, 0.94);
   --border-glass: rgba(255, 255, 255, 0.08);
   --border-glass-hover: rgba(255, 255, 255, 0.16);
   --text-main: #f0f0f3;
@@ -16,8 +16,8 @@
 
   /* Apple-style Fluid Spring Easing for 120 FPS Extrusion */
   --spring-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 0.2s ease;
-  --transition-morph: 0.42s var(--spring-ease);
+  --transition-fast: 0.15s ease;
+  --transition-morph: 0.32s var(--spring-ease);
 }
 
 * {
@@ -49,8 +49,8 @@ body {
   position: relative;
   background: var(--bg-glass);
   border: 1px solid var(--border-glass);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow: 
     0 16px 36px -8px rgba(0, 0, 0, 0.7),
     0 4px 12px rgba(0, 0, 0, 0.4),
@@ -58,6 +58,9 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transform: translateZ(0); /* Hardware accelerated compositing layer */
+  backface-visibility: hidden;
+  perspective: 1000px;
   will-change: width, height, border-radius, transform;
   transition: 
     width var(--transition-morph),
@@ -83,6 +86,7 @@ body {
   height: 450px;
   border-radius: 22px;
 }
+
 
 /* ==========================================================================
    HEADER / PILL BAR
@@ -311,15 +315,19 @@ body {
   flex-direction: column;
   overflow: hidden;
   opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top center;
   pointer-events: none;
-  transition: opacity 0.25s ease 0.1s;
+  transition: opacity 0.22s ease, transform 0.28s var(--spring-ease);
   -webkit-app-region: no-drag;
 }
 
 .island.expanded .chat-drawer {
   opacity: 1;
+  transform: translateY(0) scale(1);
   pointer-events: auto;
 }
+
 
 /* Message List */
 .message-list {

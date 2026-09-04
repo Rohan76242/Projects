@@ -402,6 +402,13 @@ def main():
     elif mode is None:
         mode = config.DEFAULT_MODE
 
+    # Start real-time downloads & applications watcher in background
+    try:
+        from z3ro.app_watcher import start_app_watcher
+        start_app_watcher()
+    except Exception as e:
+        logger.debug(f"Could not start app watcher: {e}")
+
     # 4. Dispatch mode
     if mode == "ui":
         run_ui_mode(config.ASSISTANT_NAME)
