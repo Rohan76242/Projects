@@ -120,8 +120,9 @@ def run_voice_mode():
     print(f"  TTS:    pyttsx3 (offline)")
     print(f"  Wake:   Custom CNN")
     print(f"  Loaded in {load_time:.1f}s")
-    print()
-    print("  Say 'Z3RO' to activate.")
+    wake_word = "SOBIA"
+    print(f"  Say '{wake_word}' to activate.")
+    print("  Tip: Wake-word CNN is trained on 'SOBIA'.")
     print("  Press CTRL+C to quit.")
     print()
 

@@ -9,6 +9,7 @@ import sounddevice as sd
 import soundfile as sf
 
 from faster_whisper import WhisperModel
+from z3ro.config import config
 
 
 # How long to record the user's command (seconds)
@@ -51,6 +52,7 @@ class STT:
 
         audio = sd.rec(
             int(seconds * SAMPLE_RATE),
+            device=config.MIC_DEVICE_INDEX,
             samplerate=SAMPLE_RATE,
             channels=1,
             dtype="float32",

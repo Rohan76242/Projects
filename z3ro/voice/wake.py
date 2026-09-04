@@ -14,13 +14,14 @@ import torch
 import torchaudio
 
 from torch import nn
+from z3ro.config import config
 
 
 # ============================================================
 # SETTINGS
 # ============================================================
 
-SAMPLE_RATE = 16000
+SAMPLE_RATE = config.AUDIO_SAMPLE_RATE
 
 # The model was trained on 1-second audio
 WINDOW_SECONDS = 1.0
@@ -32,14 +33,14 @@ WINDOW_SAMPLES = int(
 # Microphone chunk size
 BLOCK_SIZE = 1600  # 0.1 second
 
-# Wake-word confidence threshold
-THRESHOLD = 0.80
+# Wake-word confidence threshold (0.50 aligns with training/evaluation)
+THRESHOLD = config.WAKEWORD_THRESHOLD
 
 # Number of consecutive detections required
-REQUIRED_DETECTIONS = 2
+REQUIRED_DETECTIONS = 1
 
 # Prevent immediate repeated triggers
-COOLDOWN_SECONDS = 2.0
+COOLDOWN_SECONDS = 1.5
 
 
 # ============================================================
@@ -247,6 +248,7 @@ class WakeListener:
         last_trigger = 0
 
         with sd.InputStream(
+            device=config.MIC_DEVICE_INDEX,
             samplerate=SAMPLE_RATE,
             channels=1,
             dtype="float32",
@@ -267,6 +269,12 @@ class WakeListener:
 
                 # Add newest audio
                 audio_buffer[-chunk_length:] = chunk
+
+                # Calculate live audio level (RMS)
+                rms = float(np.sqrt(np.mean(chunk**2)))
+                level_pct = min(rms * 100, 100)
+                vol_blocks = int(min(rms * 40, 5))
+                vol_meter = "#" * vol_blocks + "-" * (5 - vol_blocks)
 
                 # Create MFCC
                 features = audio_to_features(
@@ -299,23 +307,17 @@ class WakeListener:
                 else:
                     consecutive = 0
 
+                current_time = time.time()
+
                 print(
-                    f"\r  [wake] "
-                    f"{confidence:.3f}  "
-                    f"{consecutive}/"
-                    f"{REQUIRED_DETECTIONS}",
+                    f"\r  [mic: {vol_meter}] [wake score: {confidence:.3f}]",
                     end="",
                     flush=True,
                 )
 
-                current_time = time.time()
-
                 if (
-                    consecutive
-                    >= REQUIRED_DETECTIONS
-                    and current_time
-                    - last_trigger
-                    >= COOLDOWN_SECONDS
+                    consecutive >= REQUIRED_DETECTIONS
+                    and current_time - last_trigger >= COOLDOWN_SECONDS
                 ):
-                    print()
+                    print(f" -> TRIGGERED! ({confidence * 100:.0f}%)")
                     return confidence
