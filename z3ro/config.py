@@ -109,7 +109,16 @@ class Config:
         default_factory=lambda: os.getenv("STT_COMPUTE_TYPE", "int8")
     )
 
-    # Text to Speech (pyttsx3)
+    # Text to Speech (Microsoft Edge Neural TTS with offline pyttsx3 fallback)
+    TTS_ENGINE: str = field(
+        default_factory=lambda: os.getenv("TTS_ENGINE", "edge")  # edge | pyttsx3
+    )
+    TTS_VOICE: str = field(
+        default_factory=lambda: os.getenv("TTS_VOICE", "en-US-AriaNeural")  # Female Neural
+    )
+    TTS_RATE_EDGE: str = field(
+        default_factory=lambda: os.getenv("TTS_RATE_EDGE", "+5%")
+    )
     TTS_RATE: int = field(
         default_factory=lambda: int(os.getenv("TTS_RATE", "180"))
     )

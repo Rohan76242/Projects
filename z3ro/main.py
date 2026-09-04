@@ -117,7 +117,7 @@ def run_voice_mode():
     print(f"  Brain:  Qwen 2.5 1.5B Instruct")
     print(f"  Vision: Moondream")
     print(f"  STT:    Whisper (small, int8)")
-    print(f"  TTS:    pyttsx3 (offline)")
+    print(f"  TTS:    Edge Neural ({config.TTS_VOICE})")
     print(f"  Wake:   Custom CNN")
     print(f"  Loaded in {load_time:.1f}s")
     wake_word = "SOBIA"
