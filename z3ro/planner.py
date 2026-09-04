@@ -21,10 +21,11 @@ class Plan:
 
 
 class Planner:
-    """Validate and normalize actions before execution."""
+    """Validate and normalize Z3RO actions."""
 
     ALLOWED_ACTIONS = {
         "open_app",
+        "find_window",
         "focus_window",
         "type_text",
         "press_key",
@@ -38,25 +39,35 @@ class Planner:
         data = json.loads(raw_text)
 
         if not isinstance(data, dict):
-            raise ValueError("Plan must be a JSON object.")
+            raise ValueError(
+                "Plan must be a JSON object."
+            )
 
         raw_actions = data.get("actions")
 
         if not isinstance(raw_actions, list):
-            raise ValueError("Plan must contain an actions list.")
+            raise ValueError(
+                "Plan must contain an actions list."
+            )
 
         if len(raw_actions) == 0:
-            raise ValueError("Plan contains no actions.")
+            raise ValueError(
+                "Plan contains no actions."
+            )
 
         if len(raw_actions) > 8:
-            raise ValueError("Plan contains too many actions.")
+            raise ValueError(
+                "Plan contains too many actions."
+            )
 
         actions = []
 
         for item in raw_actions:
 
             if not isinstance(item, dict):
-                raise ValueError("Each action must be an object.")
+                raise ValueError(
+                    "Each action must be an object."
+                )
 
             action = item.get("action")
 
@@ -69,10 +80,14 @@ class Planner:
             y = item.get("y")
 
             if x is not None and not isinstance(x, int):
-                raise ValueError("Mouse x coordinate must be an integer.")
+                raise ValueError(
+                    "Mouse x coordinate must be an integer."
+                )
 
             if y is not None and not isinstance(y, int):
-                raise ValueError("Mouse y coordinate must be an integer.")
+                raise ValueError(
+                    "Mouse y coordinate must be an integer."
+                )
 
             actions.append(
                 PlannedAction(
@@ -87,7 +102,9 @@ class Planner:
                 )
             )
 
-        return Plan(actions=actions)
+        return Plan(
+            actions=actions
+        )
 
 
 def print_plan(plan: Plan):
@@ -95,7 +112,10 @@ def print_plan(plan: Plan):
     print()
     print("PLAN:")
 
-    for index, action in enumerate(plan.actions, start=1):
+    for index, action in enumerate(
+        plan.actions,
+        start=1,
+    ):
 
         print(
             f"{index}. "
@@ -122,27 +142,24 @@ if __name__ == "__main__":
                 "app": "notepad"
             },
             {
+                "action": "find_window",
+                "title": "Notepad"
+            },
+            {
                 "action": "focus_window",
                 "title": "Notepad"
             },
             {
                 "action": "type_text",
                 "text": "Hello from Z3RO"
-            },
-            {
-                "action": "move_mouse",
-                "x": 500,
-                "y": 300
-            },
-            {
-                "action": "click_mouse",
-                "button": "left"
             }
         ]
     }
     """
 
-    plan = planner.parse(example)
+    plan = planner.parse(
+        example
+    )
 
     print("================================")
     print("       Z3RO PLANNER")
