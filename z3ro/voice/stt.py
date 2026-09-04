@@ -73,44 +73,57 @@ class STT:
             audio = audio[:, 0]
         audio_flat = audio.astype(np.float32)
 
-        # Skip if silence
-        if len(audio_flat) == 0 or np.max(np.abs(audio_flat)) < 0.005:
+        # Skip if silence or audio duration too short (< 0.3s)
+        if len(audio_flat) < sample_rate * 0.3:
+            return ""
+
+        peak = float(np.max(np.abs(audio_flat)))
+        rms = float(np.sqrt(np.mean(audio_flat ** 2)))
+        if peak < 0.015 or rms < 0.005:
             return ""
 
         # Direct in-memory transcription if 16kHz, otherwise save and transcribe
         try:
-            if sample_rate == 16000:
-                segments, _ = self.model.transcribe(
-                    audio_flat,
-                    language=language,
-                    vad_filter=True,
-                    beam_size=5,
-                )
-            else:
+            target_input = audio_flat if sample_rate == 16000 else AUDIO_PATH
+            if sample_rate != 16000:
                 sf.write(AUDIO_PATH, audio_flat, sample_rate)
-                segments, _ = self.model.transcribe(
-                    AUDIO_PATH,
-                    language=language,
-                    vad_filter=True,
-                    beam_size=5,
-                )
 
-            return " ".join(seg.text for seg in segments).strip()
+            segments, _ = self.model.transcribe(
+                target_input,
+                language=language,
+                vad_filter=True,
+                vad_parameters=dict(min_silence_duration_ms=400, threshold=0.5),
+                no_speech_threshold=0.6,
+                condition_on_previous_text=False,
+                compression_ratio_threshold=2.4,
+                beam_size=5,
+            )
+
+            # Filter out segments with high no_speech_prob
+            valid_parts = []
+            for seg in segments:
+                if getattr(seg, "no_speech_prob", 0.0) < 0.6:
+                    t = seg.text.strip()
+                    if t:
+                        valid_parts.append(t)
+
+            transcript = " ".join(valid_parts).strip()
+
+            # Filter out common Whisper silence hallucinations
+            HALLUCINATIONS = (
+                "thank you for watching", "thanks for watching", "subscribe to my channel",
+                "please subscribe", "subtitles by", "mammoth and go have a chill",
+                "go have a chill", "see you next time", "mbc", "bye bye",
+            )
+            lowered_transcript = transcript.lower()
+            if any(h in lowered_transcript for h in HALLUCINATIONS) and len(transcript) < 55:
+                return ""
+
+            return transcript
 
         except Exception as e:
-            # Fallback to writing to disk
-            try:
-                sf.write(AUDIO_PATH, audio_flat, sample_rate)
-                segments, _ = self.model.transcribe(
-                    AUDIO_PATH,
-                    language=language,
-                    vad_filter=True,
-                    beam_size=5,
-                )
-                return " ".join(seg.text for seg in segments).strip()
-            except Exception as err:
-                print(f"  [STT error] {err}")
-                return ""
+            print(f"  [STT error] {e}")
+            return ""
 
     def listen(
         self,

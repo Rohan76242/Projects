@@ -13,6 +13,59 @@ import pyttsx3
 from z3ro.config import config
 
 
+import re
+
+def clean_text_for_speech(text: str) -> str:
+    """Sanitize text before TTS speech synthesis.
+
+    - Removes file paths like C:\\... or (C:\\...)
+    - Removes emojis and unicode symbols
+    - Removes codeblocks (```...```) and backticks
+    - Removes quotation marks
+    - Removes URLs
+    - Removes redundant low-level action confirmations (e.g. 'Clicked left mouse button')
+    """
+    if not text:
+        return ""
+
+    # 1. Remove markdown code blocks
+    text = re.sub(r"```[\s\S]*?```", "", text)
+    # 2. Remove inline code backticks
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    # 3. Remove parenthesized paths: e.g. (C:\Program Files\...) or (C:/...)
+    text = re.sub(r"\([A-Za-z]:[^\)]*\)", "", text)
+    # 4. Remove standalone paths: C:\...
+    text = re.sub(r"[A-Za-z]:\\[^\s,;]+", "", text)
+    # 5. Remove URLs
+    text = re.sub(r"https?://\S+", "", text)
+    # 6. Remove emojis and unicode symbols
+    emoji_pattern = re.compile(
+        r"[\U00010000-\U0010ffff]"
+        r"|[\u2600-\u27bf]"
+        r"|[\u2300-\u23ff]"
+        r"|[\u2b50-\u2b55]"
+        r"|[\u200d\uFE0F\uFE0E]",
+        flags=re.UNICODE,
+    )
+    text = emoji_pattern.sub("", text)
+    # 7. Remove markdown formatting like **, *, ##, __, ~~
+    text = re.sub(r"[*_#~>]+", " ", text)
+    # 8. Remove quotes: ", ', “, ”, ‘, ’
+    text = re.sub(r'["\'“”‘’«»`]', "", text)
+    # 9. Clean up redundant mouse / low-level debug chatter from speech
+    text = re.sub(
+        r"\b(Clicked left mouse button|Clicked right mouse button|Moved mouse to \(\d+,\s*\d+\))\b\.?",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    # 10. Normalize whitespace and punctuation
+    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"\s+([.,!?])", r"\1", text)
+    text = re.sub(r"([.,!?]){2,}", r"\1", text)
+    return text
+
+
 class TTS:
     """Natural neural text-to-speech with offline fallback."""
 
@@ -64,6 +117,11 @@ class TTS:
         if not text:
             return
 
+        # Sanitize text so it sounds natural, clean, and never speaks file paths or formatting
+        clean_text = clean_text_for_speech(text)
+        if not clean_text:
+            return
+
         # Attempt Microsoft Edge Neural TTS
         if self.engine_type == "edge":
             try:
@@ -75,21 +133,21 @@ class TTS:
 
                 if loop.is_running():
                     # If called from an already running asyncio loop
-                    task = asyncio.create_task(self._edge_synthesize_and_play(text))
-                    # Wait for task
+                    task = asyncio.create_task(self._edge_synthesize_and_play(clean_text))
                     import concurrent.futures
-                    future = asyncio.run_coroutine_threadsafe(self._edge_synthesize_and_play(text), loop)
+                    future = asyncio.run_coroutine_threadsafe(self._edge_synthesize_and_play(clean_text), loop)
                     future.result(timeout=15)
                 else:
-                    loop.run_until_complete(self._edge_synthesize_and_play(text))
+                    loop.run_until_complete(self._edge_synthesize_and_play(clean_text))
                 return
             except Exception as e:
                 # Fall back to offline voice if network is unavailable
                 pass
 
         # Offline fallback
-        self._fallback_offline(text)
+        self._fallback_offline(clean_text)
 
     def speak(self, text: str):
         """Speak text aloud (alias for say)."""
         self.say(text)
+

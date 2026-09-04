@@ -49,9 +49,10 @@ class Tool:
 def open_app(
     app: str,
 ) -> ToolResult:
-    """Open any application, driver tool, or executable from the PC apps registry."""
+    """Open any application, driver tool, executable, or web service."""
     import os
     import shutil
+    import webbrowser
 
     if not isinstance(app, str) or not app.strip():
         return ToolResult(
@@ -60,6 +61,48 @@ def open_app(
         )
 
     clean_query = app.strip()
+    lower_query = clean_query.lower()
+
+    # 1. Direct Web Platforms & Services (YouTube, Google, Reddit, etc.)
+    WEB_PLATFORMS = {
+        "youtube": ("YouTube", "https://www.youtube.com"),
+        "yt": ("YouTube", "https://www.youtube.com"),
+        "you tube": ("YouTube", "https://www.youtube.com"),
+        "google": ("Google", "https://www.google.com"),
+        "github": ("GitHub", "https://www.github.com"),
+        "reddit": ("Reddit", "https://www.reddit.com"),
+        "chatgpt": ("ChatGPT", "https://chatgpt.com"),
+        "gmail": ("Gmail", "https://mail.google.com"),
+        "netflix": ("Netflix", "https://www.netflix.com"),
+        "twitch": ("Twitch", "https://www.twitch.tv"),
+        "twitter": ("Twitter", "https://x.com"),
+        "x": ("X", "https://x.com"),
+        "whatsapp": ("WhatsApp", "https://web.whatsapp.com"),
+        "amazon": ("Amazon", "https://www.amazon.com"),
+        "spotify web": ("Spotify", "https://open.spotify.com"),
+        "wikipedia": ("Wikipedia", "https://www.wikipedia.org"),
+    }
+
+    if lower_query in WEB_PLATFORMS:
+        name, url = WEB_PLATFORMS[lower_query]
+        webbrowser.open(url)
+        return ToolResult(
+            success=True,
+            output=f"Opened {name}.",
+        )
+
+    # 2. Direct URLs or Domain Requests
+    if lower_query.startswith(("http://", "https://", "www.")) or (
+        "." in lower_query and any(lower_query.endswith(ext) for ext in (".com", ".org", ".net", ".io", ".tv", ".ai", ".co"))
+    ):
+        url = clean_query if clean_query.startswith(("http://", "https://")) else f"https://{clean_query}"
+        webbrowser.open(url)
+        return ToolResult(
+            success=True,
+            output=f"Opened {clean_query}.",
+        )
+
+    # 3. Local Desktop Applications Registry Lookup
     catalog_app = find_app(clean_query)
     target_path = None
     app_name = clean_query
@@ -85,8 +128,18 @@ def open_app(
             ),
         )
 
+    # 4. Handle chrome_proxy web apps (e.g. YouTube PWA shortcut)
+    lower_target = target_path.lower()
+    if lower_target.endswith("chrome_proxy.exe"):
+        if "youtube" in app_name.lower() or "youtube" in lower_query:
+            webbrowser.open("https://www.youtube.com")
+            return ToolResult(
+                success=True,
+                output="Opened YouTube.",
+            )
+
+    # 5. Launch Local Executable or System Utility
     try:
-        lower_target = target_path.lower()
         if lower_target.endswith(".msc"):
             subprocess.Popen(["mmc.exe", target_path])
         elif lower_target.endswith(".cpl"):
@@ -99,9 +152,10 @@ def open_app(
             except Exception:
                 subprocess.Popen([target_path], shell=False)
 
+        # Output friendly name ONLY — never speak raw file path!
         return ToolResult(
             success=True,
-            output=f"Opened {app_name} ({target_path}).",
+            output=f"Opened {app_name}.",
         )
 
     except Exception as e:
@@ -109,6 +163,7 @@ def open_app(
             success=False,
             output=f"Failed to launch {app_name}: {e}",
         )
+
 
 
 

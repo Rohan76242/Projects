@@ -30,6 +30,15 @@ class Z3ROAgent:
                 response.text
             )
 
+            # Prevent hallucinations: If user only asked to open an app/website,
+            # prune any unrequested dangling mouse click or keystroke.
+            lowered = user_input.lower().strip()
+            is_pure_open = any(lowered.startswith(p) for p in ("open ", "launch ", "start ", "run ")) and not any(kw in lowered for kw in ("click", "type", "press", "write", "search", "and "))
+            if is_pure_open and plan and plan.actions:
+                open_acts = [a for a in plan.actions if a.action == "open_app"]
+                if open_acts:
+                    plan.actions = [open_acts[0]]
+
             return plan, None
 
         except Exception as e:
