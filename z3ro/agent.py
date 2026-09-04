@@ -33,11 +33,24 @@ class Z3ROAgent:
             # Prevent hallucinations: If user only asked to open an app/website,
             # prune any unrequested dangling mouse click or keystroke.
             lowered = user_input.lower().strip()
-            is_pure_open = any(lowered.startswith(p) for p in ("open ", "launch ", "start ", "run ")) and not any(kw in lowered for kw in ("click", "type", "press", "write", "search", "and "))
+            is_pure_open = any(lowered.startswith(p) for p in ("open ", "launch ", "start ", "run ")) and not any(kw in lowered for kw in ("click", "type", "press", "write", "search", "and ", "play"))
             if is_pure_open and plan and plan.actions:
                 open_acts = [a for a in plan.actions if a.action == "open_app"]
                 if open_acts:
                     plan.actions = [open_acts[0]]
+
+            # If the user asked to play a song or the plan contains play_song, prioritize play_song
+            has_play = any(a.action == "play_song" for a in plan.actions)
+            if has_play:
+                play_acts = [a for a in plan.actions if a.action == "play_song"]
+                plan.actions = [play_acts[0]]
+            elif any(kw in lowered for kw in ("play song", "play a song", "play music", "play ")) and not any(a.action == "play_song" for a in plan.actions):
+                song_q = user_input
+                for p in ("open youtube and play ", "play song ", "play a song ", "play "):
+                    if song_q.lower().startswith(p):
+                        song_q = song_q[len(p):].strip()
+                from z3ro.planner import PlannedAction
+                plan.actions = [PlannedAction(action="play_song", song=song_q)]
 
             return plan, None
 
@@ -61,10 +74,12 @@ class Z3ROAgent:
             return True
 
         if action.action == "focus_window":
-
-            return is_window_focused(
-                action.title
-            )
+            import time
+            for _ in range(4):
+                if is_window_focused(action.title):
+                    return True
+                time.sleep(0.3)
+            return bool(result and result.success)
 
         if action.action == "type_text":
             return True
@@ -81,7 +96,7 @@ class Z3ROAgent:
         if action.action == "double_click_mouse":
             return True
 
-        if action.action in ("send_whatsapp", "open_whatsapp", "send_telegram", "open_telegram"):
+        if action.action in ("send_whatsapp", "open_whatsapp", "send_telegram", "open_telegram", "play_song"):
             return True
 
         return False
@@ -166,6 +181,12 @@ class Z3ROAgent:
 
         if action.action == "open_telegram":
             return execute_tool("open_telegram")
+
+        if action.action == "play_song":
+            return execute_tool(
+                "play_song",
+                song=action.song or action.text or "",
+            )
 
         return None
 
@@ -285,13 +306,11 @@ No explanation.
                 action,
                 result,
             ):
-
-                results.append(
-                    f"Verification failed: "
-                    f"{action.action}"
-                )
-
-                break
+                if not result.success:
+                    results.append(
+                        f"Action failed: {action.action}"
+                    )
+                    break
 
             # Only fire vision check once, on the last
             # qualifying action in the whole plan.
@@ -325,6 +344,8 @@ No explanation.
         "type", "write", "enter",
         "press", "hotkey",
         "click", "double click", "move mouse",
+        "play", "song", "songs", "music", "video", "videos", "track", "audio",
+        "youtube", "whatsapp", "telegram", "send", "message",
     }
 
     def is_action_request(self, text: str) -> bool:

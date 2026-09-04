@@ -109,6 +109,7 @@ send_whatsapp
 open_whatsapp
 send_telegram
 open_telegram
+play_song
 
 Rules:
 
@@ -128,12 +129,65 @@ Rules:
 12. Use open_whatsapp to open the WhatsApp app.
 13. Use send_telegram to send a message on Telegram.
 14. Use open_telegram to open the Telegram app.
-15. Keep plans short.
-16. Return JSON only.
-17. Do not include markdown.
-18. Do not include explanations.
+15. Use play_song to play a song, music, or video on YouTube.
+16. Keep plans short.
+17. Return JSON only.
+18. Do not include markdown.
+19. Do not include explanations.
 
 Examples:
+
+User:
+play a song
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "play_song",
+            "song": "top hits"
+        }
+    ]
+}
+
+User:
+play despacito
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "play_song",
+            "song": "despacito"
+        }
+    ]
+}
+
+User:
+play believer on youtube
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "play_song",
+            "song": "believer"
+        }
+    ]
+}
+
+User:
+open youtube and play a song
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "play_song",
+            "song": "top hits"
+        }
+    ]
+}
 
 User:
 open notepad

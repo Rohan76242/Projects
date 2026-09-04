@@ -572,6 +572,101 @@ def open_telegram_tool(**kwargs) -> ToolResult:
     return ToolResult(success=res["success"], output=res["output"])
 
 
+def get_youtube_video(query: str) -> str | None:
+    """Search YouTube and return the top video ID."""
+    import urllib.request
+    import urllib.parse
+    import re
+
+    clean = query.strip()
+    if not clean:
+        clean = "top hits songs"
+
+    url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(clean)}"
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            html = resp.read().decode("utf-8", errors="ignore")
+        ids = re.findall(r"watch\?v=([a-zA-Z0-9_-]{11})", html)
+        if ids:
+            return ids[0]
+    except Exception:
+        pass
+    return None
+
+
+def play_song(song: str = "", **kwargs) -> ToolResult:
+    """Search and play a song or music video on YouTube in standalone app mode."""
+    import os
+    import shutil
+    import subprocess
+    import webbrowser
+
+    raw_query = song or kwargs.get("query") or kwargs.get("title") or kwargs.get("text") or ""
+    clean_query = str(raw_query).strip()
+
+    # Strip prefixes like "play ", "a song", "on youtube"
+    for prefix in ("play ", "song ", "music ", "search "):
+        if clean_query.lower().startswith(prefix):
+            clean_query = clean_query[len(prefix):].strip()
+
+    for suffix in (" on youtube", " in youtube", " song", " music"):
+        if clean_query.lower().endswith(suffix):
+            clean_query = clean_query[:-len(suffix)].strip()
+
+    if not clean_query or clean_query.lower() in ("a song", "song", "music", "something", "any song"):
+        display_title = "popular music"
+        search_term = "top trending hits songs"
+    else:
+        display_title = clean_query
+        search_term = f"{clean_query} song"
+
+    # 1. Fetch top video ID
+    video_id = get_youtube_video(search_term)
+    if video_id:
+        target_url = f"https://www.youtube.com/watch?v={video_id}"
+    else:
+        import urllib.parse
+        target_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(search_term)}"
+
+    # 2. Launch in standalone YouTube app window (Chrome --app=URL)
+    chrome_candidates = [
+        os.path.expandvars(r"%PROGRAMFILES%\Google\Chrome\Application\chrome.exe"),
+        os.path.expandvars(r"%PROGRAMFILES(X86)%\Google\Chrome\Application\chrome.exe"),
+        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+        shutil.which("chrome.exe"),
+        shutil.which("chrome"),
+    ]
+    chrome_exe = next((p for p in chrome_candidates if p and os.path.isfile(p)), None)
+
+    try:
+        if chrome_exe:
+            # Opens in a clean standalone window without browser address bar
+            subprocess.Popen([chrome_exe, f"--app={target_url}"])
+        else:
+            webbrowser.open(target_url)
+
+        return ToolResult(
+            success=True,
+            output=f"Playing {display_title} on YouTube.",
+        )
+    except Exception as e:
+        try:
+            webbrowser.open(target_url)
+            return ToolResult(
+                success=True,
+                output=f"Playing {display_title} on YouTube.",
+            )
+        except Exception as err:
+            return ToolResult(
+                success=False,
+                output=f"Failed to play song: {err}",
+            )
+
+
 TOOLS = {
 
     "open_app": Tool(
@@ -580,6 +675,12 @@ TOOLS = {
             "Open an approved Windows application."
         ),
         function=open_app,
+    ),
+
+    "play_song": Tool(
+        name="play_song",
+        description="Search and play a song or music video on YouTube in standalone app mode.",
+        function=play_song,
     ),
 
     "send_whatsapp": Tool(
