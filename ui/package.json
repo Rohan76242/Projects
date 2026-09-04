@@ -1,0 +1,15 @@
+{
+  "name": "dynamic-island-assistant",
+  "version": "1.0.0",
+  "description": "Minimalist Dynamic Island Desktop Overlay for Z3RO & SOBIA",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": ["dynamic-island", "ai-assistant", "electron", "desktop-overlay"],
+  "author": "Rohan",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^35.1.0"
+  }
+}

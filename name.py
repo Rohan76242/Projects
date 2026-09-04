@@ -261,6 +261,50 @@ def run_cloud_live_mode(assistant_name: str):
         run_type_mode(assistant_name)
 
 
+def run_ui_mode(assistant_name: str):
+    """Launch Electron Dynamic Island overlay and run WebSocket bridge server."""
+    import subprocess
+    import shutil
+
+    print_banner(assistant_name, mode="Dynamic Island Overlay (120 FPS)", engine=config.ENGINE)
+    logger.info("Initializing UI Bridge & Desktop Overlay...")
+
+    ui_dir = PROJECT_ROOT / "ui"
+    if not (ui_dir / "node_modules").is_dir():
+        logger.info("Installing UI dependencies (npm install)...")
+        npm_bin = shutil.which("npm.cmd") or shutil.which("npm") or "npm.cmd"
+        subprocess.run([npm_bin, "install"], cwd=str(ui_dir), shell=True)
+
+    # Launch Electron in background subprocess
+    npm_bin = shutil.which("npm.cmd") or shutil.which("npm") or "npm.cmd"
+    electron_proc = None
+    try:
+        electron_proc = subprocess.Popen(
+            [npm_bin, "start"],
+            cwd=str(ui_dir),
+            shell=True,
+        )
+        logger.info(f"Spawned Dynamic Island UI (PID: {electron_proc.pid})")
+    except Exception as e:
+        logger.error(f"Failed to launch Electron UI: {e}")
+
+    # Start the WebSocket server (runs on ws://127.0.0.1:8765)
+    from z3ro.ui_bridge import UIBridgeServer
+    bridge = UIBridgeServer()
+
+    try:
+        import asyncio
+        asyncio.run(bridge.run_server())
+    except KeyboardInterrupt:
+        print(f"\n{Colors.YELLOW}[*] Shutting down UI Bridge...{Colors.RESET}")
+    finally:
+        if electron_proc and electron_proc.poll() is None:
+            try:
+                electron_proc.terminate()
+            except Exception:
+                pass
+
+
 def main():
     """Main CLI entrypoint."""
     parser = argparse.ArgumentParser(
@@ -278,15 +322,22 @@ def main():
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["voice", "type", "ptt", "cloud"],
+        choices=["voice", "type", "ptt", "cloud", "ui"],
         default=None,
         help=(
             "Operational mode:\n"
+            "  ui     : Dynamic Island desktop overlay (Electron)\n"
             "  voice  : Hands-free wake word listening loop (default)\n"
             "  type   : Interactive keyboard CLI REPL\n"
             "  ptt    : Push-to-talk voice mode (no wake word needed)\n"
             "  cloud  : SOBIA Gemini Live streaming voice mode"
         ),
+    )
+
+    parser.add_argument(
+        "--ui",
+        action="store_true",
+        help="Launch the Dynamic Island desktop overlay (Electron + WebSocket)",
     )
 
     parser.add_argument(
@@ -344,13 +395,17 @@ def main():
 
     # 3. Determine selected mode
     mode = args.mode
-    if args.type:
+    if args.ui:
+        mode = "ui"
+    elif args.type:
         mode = "type"
     elif mode is None:
         mode = config.DEFAULT_MODE
 
     # 4. Dispatch mode
-    if mode == "type":
+    if mode == "ui":
+        run_ui_mode(config.ASSISTANT_NAME)
+    elif mode == "type":
         run_type_mode(config.ASSISTANT_NAME)
     elif mode == "ptt":
         run_ptt_mode(config.ASSISTANT_NAME)
@@ -362,3 +417,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

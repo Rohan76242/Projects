@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Island Overlay</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="island" class="island collapsed">
+    <!-- Header / Pill Bar -->
+    <div id="island-header" class="island-header">
+      <!-- Left: Identity & Status Indicator -->
+      <div class="header-left">
+        <span id="status-orb" class="status-orb idle"></span>
+        <span id="brand-name" class="brand-name">SOBIA</span>
+      </div>
+
+      <!-- Center: Dynamic Morphing State (Wave / Thinking / Action) -->
+      <div class="header-center">
+        <!-- Live Audio Wave (Active when Listening / Speaking) -->
+        <div id="wave-container" class="wave-container hidden">
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+        </div>
+
+        <!-- Clean Thinking Animation (Active when Qwen 2.5 is thinking) -->
+        <div id="thinking-container" class="thinking-container hidden">
+          <div class="thinking-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <span class="thinking-label">Thinking</span>
+        </div>
+
+        <!-- Action Status Badge -->
+        <div id="action-badge" class="action-badge hidden">
+          <span class="action-icon">⚡</span>
+          <span id="action-text" class="action-text">Action</span>
+        </div>
+
+        <!-- Idle Status Text -->
+        <span id="status-label" class="status-label">Ready</span>
+      </div>
+
+      <!-- Right: Interactive Controls -->
+      <div class="header-right">
+        <!-- Stop Generation Button (Appears during thinking/speaking) -->
+        <button id="btn-stop" class="btn-icon btn-stop hidden" title="Stop Generation (Esc)">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+            <rect x="5" y="5" width="14" height="14" rx="2" />
+          </svg>
+        </button>
+
+        <!-- Microphone Button (PTT / Voice Toggle) -->
+        <button id="btn-mic" class="btn-icon btn-mic" title="Hold or Click to Speak">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" x2="12" y1="19" y2="22"/>
+          </svg>
+        </button>
+
+        <!-- Expand / Collapse Chevron -->
+        <button id="btn-expand" class="btn-icon btn-expand" title="Toggle Chat Box">
+          <svg id="chevron-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Box Drawer (Extruded Downward) -->
+    <div id="chat-drawer" class="chat-drawer">
+      <!-- Message Stream -->
+      <div id="message-list" class="message-list">
+        <div class="message assistant system-welcome">
+          <span class="msg-text">SOBIA is online. Ask a question or command desktop actions.</span>
+        </div>
+      </div>
+
+      <!-- Chat Input Footer -->
+      <form id="chat-form" class="chat-footer">
+        <input
+          type="text"
+          id="chat-input"
+          class="chat-input"
+          placeholder="Ask or command anything..."
+          autocomplete="off"
+        />
+        <button type="button" id="btn-input-mic" class="btn-icon btn-input-mic" title="Voice Input">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" x2="12" y1="19" y2="22"/>
+          </svg>
+        </button>
+        <button type="submit" id="btn-send" class="btn-icon btn-send" title="Send (Enter)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="19" x2="12" y2="5"/>
+            <polyline points="5 12 12 5 19 12"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
