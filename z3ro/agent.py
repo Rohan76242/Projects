@@ -310,6 +310,10 @@ No explanation.
 
         return results
 
+    def run(self, user_input: str):
+        """Execute a user instruction (alias for handle)."""
+        return self.handle(user_input)
+
 
 if __name__ == "__main__":
 

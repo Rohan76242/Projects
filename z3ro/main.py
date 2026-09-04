@@ -14,6 +14,8 @@ import sys
 import time
 import argparse
 
+from z3ro.config import config
+
 
 def run_voice_mode():
     """Full voice loop: wake → listen → act → speak."""
@@ -23,6 +25,7 @@ def run_voice_mode():
     # ------------------------------------------------
 
     model_paths = [
+        config.WAKEWORD_MODEL_PATH,
         os.path.join(
             os.path.dirname(__file__),
             "..",
@@ -251,8 +254,7 @@ def run_type_mode():
 # Entry point
 # ============================================================
 
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser(
         description="Z3RO Computer Control Agent",
     )
@@ -270,3 +272,7 @@ if __name__ == "__main__":
         run_type_mode()
     else:
         run_voice_mode()
+
+
+if __name__ == "__main__":
+    main()

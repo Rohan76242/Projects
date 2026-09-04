@@ -5,3 +5,11 @@ __pycache__/
 .env
 .env.*
 !.env.example
+logs/
+*.log
+*.wav
+z3ro_screen.png
+test_screen*.png
+build/
+dist/
+*.egg-info/
