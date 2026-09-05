@@ -205,118 +205,94 @@ def find_window_tool(
             output="Window title cannot be empty.",
         )
 
-    try:
+    import time
+    start = time.perf_counter()
 
-        windows = list_windows()
-
-    except Exception as e:
-
-        return ToolResult(
-            success=False,
-            output=(
-                f"Could not enumerate windows: {e}"
-            ),
-        )
-
-    # First: exact title match.
-    for window in windows:
-
-        if window.title.strip().lower() == search:
-
-            x, y = window.center
-
+    while True:
+        try:
+            windows = list_windows()
+        except Exception as e:
             return ToolResult(
-                success=True,
-                output=(
-                    f"Found '{window.title}'. "
-                    f"Center: ({x}, {y})"
-                ),
+                success=False,
+                output=f"Could not enumerate windows: {e}",
             )
 
-    # Second: substring match.
-    for window in windows:
-
-        if search in window.title.lower():
-
-            x, y = window.center
-
-            return ToolResult(
-                success=True,
-                output=(
-                    f"Found '{window.title}'. "
-                    f"Center: ({x}, {y})"
-                ),
-            )
-
-    # Third: common application-name matching.
-    aliases = {
-        "notepad": "notepad",
-        "calculator": "calculator",
-        "calc": "calculator",
-        "paint": "paint",
-        "explorer": "explorer",
-        "chrome": "chrome",
-    }
-
-    normalized = aliases.get(
-        search,
-        search,
-    )
-
-    if normalized != search:
-
+        # First: exact title match.
         for window in windows:
-
-            if normalized in window.title.lower():
-
+            if window.title.strip().lower() == search:
                 x, y = window.center
-
                 return ToolResult(
                     success=True,
-                    output=(
-                        f"Found '{window.title}'. "
-                        f"Center: ({x}, {y})"
-                    ),
+                    output=f"Found '{window.title}'. Center: ({x}, {y})",
                 )
+
+        # Second: substring match.
+        for window in windows:
+            if search in window.title.lower():
+                x, y = window.center
+                return ToolResult(
+                    success=True,
+                    output=f"Found '{window.title}'. Center: ({x}, {y})",
+                )
+
+        # Third: common application-name matching.
+        aliases = {
+            "notepad": "notepad",
+            "calculator": "calculator",
+            "calc": "calculator",
+            "paint": "paint",
+            "explorer": "explorer",
+            "chrome": "chrome",
+            "whatsapp": "whatsapp",
+            "telegram": "telegram",
+            "youtube": "youtube",
+        }
+
+        normalized = aliases.get(search, search)
+        if normalized != search:
+            for window in windows:
+                if normalized in window.title.lower():
+                    x, y = window.center
+                    return ToolResult(
+                        success=True,
+                        output=f"Found '{window.title}'. Center: ({x}, {y})",
+                    )
+
+        if (time.perf_counter() - start) >= 2.5:
+            break
+        time.sleep(0.2)
 
     return ToolResult(
         success=False,
-        output=(
-            f"Could not find window: {title}"
-        ),
+        output=f"Could not find window: {title}",
     )
 
 
 def focus_app_window(
     title: str,
 ) -> ToolResult:
-    """Focus a visible Windows application window."""
+    """Focus a visible Windows application window with retry."""
 
     if not isinstance(title, str):
-
         return ToolResult(
             success=False,
             output="Window title must be a string.",
         )
 
     title = title.strip()
-
     if not title:
-
         return ToolResult(
             success=False,
             output="A window title is required.",
         )
 
     if len(title) > 100:
-
         return ToolResult(
             success=False,
             output="Window title is too long.",
         )
 
-    if focus_window(title):
-
+    if focus_window(title, timeout=2.5):
         return ToolResult(
             success=True,
             output=f"Focused window: {title}.",
@@ -324,9 +300,7 @@ def focus_app_window(
 
     return ToolResult(
         success=False,
-        output=(
-            f"Could not focus window: {title}"
-        ),
+        output=f"Could not focus window: {title}",
     )
 
 
@@ -467,22 +441,36 @@ def type_text(
             output="No text supplied.",
         )
 
-    if len(text) > 2000:
-
+    if len(text) > 5000:
         return ToolResult(
             success=False,
             output="Text is too long.",
         )
 
-    pyautogui.write(
-        text,
-        interval=0.01,
-    )
-
-    return ToolResult(
-        success=True,
-        output="Text typed successfully.",
-    )
+    import time
+    try:
+        import pyperclip
+        # Fast & universal clipboard paste (works across WhatsApp, Telegram, Notepad, Chrome, Word, etc.)
+        pyperclip.copy(text)
+        time.sleep(0.04)
+        pyautogui.hotkey("ctrl", "v")
+        time.sleep(0.04)
+        return ToolResult(
+            success=True,
+            output=f"Typed text: {text[:50]}...",
+        )
+    except Exception:
+        try:
+            pyautogui.write(text, interval=0.01)
+            return ToolResult(
+                success=True,
+                output="Text typed successfully.",
+            )
+        except Exception as e:
+            return ToolResult(
+                success=False,
+                output=f"Failed to type text: {e}",
+            )
 
 
 def press_key(
@@ -667,6 +655,114 @@ def play_song(song: str = "", **kwargs) -> ToolResult:
             )
 
 
+# =========================================================================
+# SYSTEM-WIDE VOLUME & MEDIA CONTROLS
+# =========================================================================
+
+def _send_vk(vk_code: int, count: int = 1, delay: float = 0.03):
+    """Send Windows virtual key event using user32.keybd_event."""
+    import ctypes
+    import time
+    user32 = ctypes.windll.user32
+    KEYEVENTF_EXTENDEDKEY = 0x0001
+    KEYEVENTF_KEYUP = 0x0002
+    for _ in range(count):
+        user32.keybd_event(vk_code, 0, KEYEVENTF_EXTENDEDKEY, 0)
+        time.sleep(delay)
+        user32.keybd_event(vk_code, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0)
+        time.sleep(delay)
+
+
+def volume_up(steps: int = 5, **kwargs) -> ToolResult:
+    """Turn system volume up (5 steps = +10%)."""
+    VK_VOLUME_UP = 0xAF
+    _send_vk(VK_VOLUME_UP, count=max(1, min(int(steps), 25)))
+    return ToolResult(success=True, output="Turned volume up.")
+
+
+def volume_down(steps: int = 5, **kwargs) -> ToolResult:
+    """Turn system volume down (5 steps = -10%)."""
+    VK_VOLUME_DOWN = 0xAE
+    _send_vk(VK_VOLUME_DOWN, count=max(1, min(int(steps), 25)))
+    return ToolResult(success=True, output="Turned volume down.")
+
+
+def mute_volume(**kwargs) -> ToolResult:
+    """Toggle system volume mute/unmute."""
+    VK_VOLUME_MUTE = 0xAD
+    _send_vk(VK_VOLUME_MUTE, count=1)
+    return ToolResult(success=True, output="Toggled volume mute.")
+
+
+def pause_song(**kwargs) -> ToolResult:
+    """Pause currently playing audio, video, or song."""
+    from z3ro.window import find_window, focus_window
+    VK_MEDIA_PLAY_PAUSE = 0xB3
+    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
+    yt = find_window("YouTube")
+    if yt:
+        focus_window("YouTube")
+        pyautogui.press("k")
+    return ToolResult(success=True, output="Paused playback.")
+
+
+def resume_song(**kwargs) -> ToolResult:
+    """Resume paused audio, video, or song."""
+    from z3ro.window import find_window, focus_window
+    VK_MEDIA_PLAY_PAUSE = 0xB3
+    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
+    yt = find_window("YouTube")
+    if yt:
+        focus_window("YouTube")
+        pyautogui.press("k")
+    return ToolResult(success=True, output="Resumed playback.")
+
+
+def stop_song(**kwargs) -> ToolResult:
+    """Stop currently playing audio, video, or music."""
+    from z3ro.window import find_window, focus_window
+    VK_MEDIA_STOP = 0xB2
+    VK_MEDIA_PLAY_PAUSE = 0xB3
+    _send_vk(VK_MEDIA_STOP, count=1)
+    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
+    try:
+        import sounddevice as sd
+        sd.stop()
+    except Exception:
+        pass
+    yt = find_window("YouTube")
+    if yt:
+        focus_window("YouTube")
+        pyautogui.press("k")
+    return ToolResult(success=True, output="Stopped playback.")
+
+
+def next_song(song: str = "", **kwargs) -> ToolResult:
+    """Skip to next track or change to a new video/song."""
+    from z3ro.window import find_window, focus_window
+    if song and song.strip():
+        return play_song(song.strip())
+    VK_MEDIA_NEXT_TRACK = 0xB0
+    _send_vk(VK_MEDIA_NEXT_TRACK, count=1)
+    yt = find_window("YouTube")
+    if yt:
+        focus_window("YouTube")
+        pyautogui.hotkey("shift", "n")
+    return ToolResult(success=True, output="Skipped to next video/song.")
+
+
+def previous_song(**kwargs) -> ToolResult:
+    """Return to previous track or video."""
+    from z3ro.window import find_window, focus_window
+    VK_MEDIA_PREV_TRACK = 0xB1
+    _send_vk(VK_MEDIA_PREV_TRACK, count=1)
+    yt = find_window("YouTube")
+    if yt:
+        focus_window("YouTube")
+        pyautogui.hotkey("shift", "p")
+    return ToolResult(success=True, output="Returned to previous track.")
+
+
 TOOLS = {
 
     "open_app": Tool(
@@ -681,6 +777,60 @@ TOOLS = {
         name="play_song",
         description="Search and play a song or music video on YouTube in standalone app mode.",
         function=play_song,
+    ),
+
+    "pause_song": Tool(
+        name="pause_song",
+        description="Pause playing music or video.",
+        function=pause_song,
+    ),
+
+    "resume_song": Tool(
+        name="resume_song",
+        description="Resume music or video playback.",
+        function=resume_song,
+    ),
+
+    "stop_song": Tool(
+        name="stop_song",
+        description="Stop music or video playback.",
+        function=stop_song,
+    ),
+
+    "next_song": Tool(
+        name="next_song",
+        description="Skip to the next video or track.",
+        function=next_song,
+    ),
+
+    "previous_song": Tool(
+        name="previous_song",
+        description="Return to the previous video or track.",
+        function=previous_song,
+    ),
+
+    "change_video": Tool(
+        name="change_video",
+        description="Change current video or song.",
+        function=next_song,
+    ),
+
+    "volume_up": Tool(
+        name="volume_up",
+        description="Turn system volume up.",
+        function=volume_up,
+    ),
+
+    "volume_down": Tool(
+        name="volume_down",
+        description="Turn system volume down.",
+        function=volume_down,
+    ),
+
+    "mute_volume": Tool(
+        name="mute_volume",
+        description="Mute or unmute system audio.",
+        function=mute_volume,
     ),
 
     "send_whatsapp": Tool(

@@ -166,6 +166,15 @@ open_whatsapp
 send_telegram
 open_telegram
 play_song
+pause_song
+resume_song
+stop_song
+next_song
+previous_song
+change_video
+volume_up
+volume_down
+mute_volume
 
 Rules:
 
@@ -186,12 +195,67 @@ Rules:
 13. Use send_telegram to send a message on Telegram.
 14. Use open_telegram to open the Telegram app.
 15. Use play_song to play a song, music, or video on YouTube.
-16. Keep plans short.
-17. Return JSON only.
-18. Do not include markdown.
-19. Do not include explanations.
+16. Use stop_song to stop music, video, or song playback.
+17. Use pause_song to pause playing audio or video.
+18. Use resume_song to resume paused playback.
+19. Use change_video or next_song to change video or skip song.
+20. Use volume_up to increase volume or turn volume up.
+21. Use volume_down to decrease volume or turn volume down.
+22. Use mute_volume to mute or unmute sound.
+23. Keep plans short.
+24. Return JSON only.
+25. Do not include markdown.
+26. Do not include explanations.
 
 Examples:
+
+User:
+turn volume up
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "volume_up"
+        }
+    ]
+}
+
+User:
+turn volume down
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "volume_down"
+        }
+    ]
+}
+
+User:
+stop song
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "stop_song"
+        }
+    ]
+}
+
+User:
+change the video
+
+JSON:
+{
+    "actions": [
+        {
+            "action": "change_video"
+        }
+    ]
+}
 
 User:
 play a song

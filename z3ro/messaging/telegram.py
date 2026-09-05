@@ -120,22 +120,25 @@ def send_telegram(recipient: str, message: str, auto_send: bool = True) -> dict:
 
     # 3. Contact name via desktop UI automation
     try:
+        import pyperclip
         open_telegram()
-        time.sleep(1.8)
+        time.sleep(1.2)
 
-        # Focus search bar
-        pyautogui.hotkey("ctrl", "f")
+        # Focus search bar (Ctrl + K or Ctrl + F in Telegram)
+        pyautogui.hotkey("ctrl", "k")
         time.sleep(0.3)
-        pyautogui.write(recipient_clean, interval=0.04)
-        time.sleep(0.8)
+        pyperclip.copy(recipient_clean)
+        pyautogui.hotkey("ctrl", "v")
+        time.sleep(0.7)
         pyautogui.press("enter")
-        time.sleep(0.8)
+        time.sleep(0.5)
 
-        # Type message
-        pyautogui.write(msg_clean, interval=0.03)
+        # Paste message
+        pyperclip.copy(msg_clean)
+        pyautogui.hotkey("ctrl", "v")
+        time.sleep(0.2)
 
         if auto_send:
-            time.sleep(0.3)
             pyautogui.press("enter")
 
         logger.info(f"Dispatched Telegram message to contact: {recipient_clean}")

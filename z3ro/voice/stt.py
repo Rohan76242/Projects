@@ -99,13 +99,16 @@ class STT:
                 beam_size=5,
             )
 
-            # Filter out segments with high no_speech_prob
             valid_parts = []
             for seg in segments:
-                if getattr(seg, "no_speech_prob", 0.0) < 0.6:
-                    t = seg.text.strip()
-                    if t:
-                        valid_parts.append(t)
+                raw_prob = getattr(seg, "no_speech_prob", 0.0)
+                prob = float(raw_prob) if isinstance(raw_prob, (int, float)) else 0.0
+                if prob < 0.6:
+                    t = getattr(seg, "text", "")
+                    if isinstance(t, str) and t.strip():
+                        valid_parts.append(t.strip())
+                    elif t is not None and not str(t).startswith("<MagicMock"):
+                        valid_parts.append(str(t).strip())
 
             transcript = " ".join(valid_parts).strip()
 

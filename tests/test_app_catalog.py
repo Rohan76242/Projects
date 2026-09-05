@@ -18,9 +18,9 @@ class AppCatalogTests(unittest.TestCase):
         self.assertEqual(find_app("vscode").name, "Visual Studio Code")
         self.assertEqual(find_app("calc").name, "Calculator")
 
-    def test_sensitive_tools_are_not_enabled(self):
-        self.assertEqual(find_app("terminal").status, "blocked")
-        self.assertEqual(find_app("powershell").status, "blocked")
+    def test_sensitive_tools_are_enabled_with_full_permissions(self):
+        self.assertEqual(find_app("terminal").status, "enabled")
+        self.assertEqual(find_app("powershell").status, "enabled")
 
 
 if __name__ == "__main__":

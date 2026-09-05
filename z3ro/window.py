@@ -110,8 +110,9 @@ def list_windows() -> list[WindowInfo]:
 
 def find_window(
     title: str,
+    timeout: float = 0.0,
 ) -> WindowInfo | None:
-    """Find the first visible window matching a title."""
+    """Find the first visible window matching a title, with optional polling timeout."""
 
     if not isinstance(title, str):
         return None
@@ -121,10 +122,15 @@ def find_window(
     if not search:
         return None
 
-    for window in list_windows():
+    start = time.perf_counter()
+    while True:
+        for window in list_windows():
+            if search in window.title.lower():
+                return window
 
-        if search in window.title.lower():
-            return window
+        if timeout <= 0.0 or (time.perf_counter() - start) >= timeout:
+            break
+        time.sleep(0.15)
 
     return None
 
@@ -199,28 +205,42 @@ def is_window_focused(
 
 def focus_window(
     title: str,
+    timeout: float = 1.5,
 ) -> bool:
-    """Bring a matching window to the foreground."""
+    """Bring a matching window to the foreground reliably using Win32 foreground lock bypass."""
 
-    window = find_window(title)
+    window = find_window(title, timeout=timeout)
 
     if window is None:
         return False
 
-    user32.ShowWindow(
-        window.hwnd,
-        5,
-    )
+    SW_RESTORE = 9
+    SW_SHOW = 5
 
-    time.sleep(0.2)
+    # If minimized, restore it
+    if user32.IsIconic(window.hwnd):
+        user32.ShowWindow(window.hwnd, SW_RESTORE)
+    else:
+        user32.ShowWindow(window.hwnd, SW_SHOW)
 
-    user32.SetForegroundWindow(
-        window.hwnd,
-    )
+    time.sleep(0.08)
 
-    time.sleep(0.2)
+    # Force foreground window even if OS blocks background processes
+    cur_thread = user32.GetCurrentThreadId()
+    fg_hwnd = user32.GetForegroundWindow()
+    fg_thread = user32.GetWindowThreadProcessId(fg_hwnd, None) if fg_hwnd else 0
 
-    return is_window_focused(title)
+    if fg_thread and cur_thread != fg_thread:
+        user32.AttachThreadInput(cur_thread, fg_thread, True)
+        user32.SetForegroundWindow(window.hwnd)
+        user32.SetFocus(window.hwnd)
+        user32.AttachThreadInput(cur_thread, fg_thread, False)
+    else:
+        user32.SetForegroundWindow(window.hwnd)
+        user32.SetFocus(window.hwnd)
+
+    time.sleep(0.12)
+    return is_window_focused(title) or user32.GetForegroundWindow() == window.hwnd
 
 
 def get_window_center(

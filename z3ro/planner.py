@@ -67,6 +67,7 @@ class PlannedAction:
     recipient: Optional[str] = None
     message: Optional[str] = None
     song: Optional[str] = None
+    steps: Optional[int] = None
 
 
 @dataclass
@@ -91,6 +92,15 @@ class Planner:
         "send_telegram",
         "open_telegram",
         "play_song",
+        "pause_song",
+        "resume_song",
+        "stop_song",
+        "next_song",
+        "previous_song",
+        "change_video",
+        "volume_up",
+        "volume_down",
+        "mute_volume",
     }
 
     def parse(self, raw_text: str) -> Plan:
@@ -161,6 +171,7 @@ class Planner:
                     recipient=item.get("recipient") or item.get("to") or item.get("contact"),
                     message=item.get("message") or item.get("body") or item.get("text"),
                     song=item.get("song") or item.get("query") or item.get("title"),
+                    steps=item.get("steps"),
                 )
             )
 
