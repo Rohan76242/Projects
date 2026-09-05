@@ -27,9 +27,11 @@ function createWindow() {
     transparent: true,
     backgroundColor: "#00000000",
     alwaysOnTop: true,
-    skipTaskbar: false,
+    skipTaskbar: true,
     resizable: false,
     hasShadow: false,
+    title: "",
+    titleBarStyle: "hidden",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
