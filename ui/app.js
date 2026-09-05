@@ -466,10 +466,26 @@
     }
     releaseElectronFocus();
 
-    // Hide welcome hero on first message
+    // Hide welcome hero on first message & activate chat watermark
     const welcomeHero = document.getElementById("welcome-hero");
     if (welcomeHero) {
       welcomeHero.style.display = "none";
+    }
+    if (chatDrawer) {
+      chatDrawer.classList.add("has-messages");
+    }
+
+    // Message Row Container
+    const rowEl = document.createElement("div");
+    rowEl.className = `message-row ${role}`;
+
+    // AI Avatar for Assistant messages in chat
+    if (role === "assistant") {
+      const avatarEl = document.createElement("img");
+      avatarEl.src = "assets/logo.png";
+      avatarEl.className = "msg-avatar";
+      avatarEl.alt = "SOBIA";
+      rowEl.appendChild(avatarEl);
     }
 
     const msgEl = document.createElement("div");
@@ -485,7 +501,8 @@
     }
 
     msgEl.appendChild(textSpan);
-    messageList.appendChild(msgEl);
+    rowEl.appendChild(msgEl);
+    messageList.appendChild(rowEl);
     scrollToBottom();
   }
 
