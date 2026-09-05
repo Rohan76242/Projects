@@ -5,6 +5,7 @@ import time
 
 
 user32 = ctypes.windll.user32
+kernel32 = ctypes.windll.kernel32
 
 
 @dataclass
@@ -48,6 +49,12 @@ def get_window_rect(hwnd: int):
 
 def list_windows() -> list[WindowInfo]:
     """Return visible Windows with non-empty titles."""
+    try:
+        hdesk = user32.OpenDesktopW("Default", 0, False, 0x01FF)
+        if hdesk:
+            user32.SetThreadDesktop(hdesk)
+    except Exception:
+        pass
 
     windows = []
 
@@ -226,7 +233,7 @@ def focus_window(
     time.sleep(0.08)
 
     # Force foreground window even if OS blocks background processes
-    cur_thread = user32.GetCurrentThreadId()
+    cur_thread = kernel32.GetCurrentThreadId()
     fg_hwnd = user32.GetForegroundWindow()
     fg_thread = user32.GetWindowThreadProcessId(fg_hwnd, None) if fg_hwnd else 0
 

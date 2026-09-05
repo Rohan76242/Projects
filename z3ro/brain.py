@@ -154,6 +154,7 @@ Required format:
 Allowed actions:
 
 open_app
+close_app
 find_window
 focus_window
 type_text

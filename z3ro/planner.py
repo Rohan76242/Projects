@@ -80,6 +80,7 @@ class Planner:
 
     ALLOWED_ACTIONS = {
         "open_app",
+        "close_app",
         "find_window",
         "focus_window",
         "type_text",

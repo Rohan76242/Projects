@@ -661,10 +661,11 @@ def play_song(song: str = "", **kwargs) -> ToolResult:
     ]
     chrome_exe = next((p for p in chrome_candidates if p and os.path.isfile(p)), None)
 
+    global _current_song_process
     try:
         if chrome_exe:
             # Opens in a clean standalone window without browser address bar
-            subprocess.Popen([chrome_exe, f"--app={target_url}"])
+            _current_song_process = subprocess.Popen([chrome_exe, f"--app={target_url}"])
         else:
             webbrowser.open(target_url)
 
@@ -684,6 +685,10 @@ def play_song(song: str = "", **kwargs) -> ToolResult:
                 success=False,
                 output=f"Failed to play song: {err}",
             )
+
+
+# Global reference to active song process
+_current_song_process = None
 
 
 # =========================================================================
@@ -727,45 +732,126 @@ def mute_volume(**kwargs) -> ToolResult:
 
 def pause_song(**kwargs) -> ToolResult:
     """Pause currently playing audio, video, or song."""
+    import time
     from z3ro.window import find_window, focus_window
-    VK_MEDIA_PLAY_PAUSE = 0xB3
-    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
     yt = find_window("YouTube")
     if yt:
         focus_window("YouTube")
+        time.sleep(0.08)
+        pyautogui.press("esc")
+        time.sleep(0.04)
         pyautogui.press("k")
+        return ToolResult(success=True, output="Paused playback.")
+
+    VK_MEDIA_PLAY_PAUSE = 0xB3
+    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
     return ToolResult(success=True, output="Paused playback.")
 
 
 def resume_song(**kwargs) -> ToolResult:
     """Resume paused audio, video, or song."""
+    import time
     from z3ro.window import find_window, focus_window
-    VK_MEDIA_PLAY_PAUSE = 0xB3
-    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
     yt = find_window("YouTube")
     if yt:
         focus_window("YouTube")
+        time.sleep(0.08)
+        pyautogui.press("esc")
+        time.sleep(0.04)
         pyautogui.press("k")
+        return ToolResult(success=True, output="Resumed playback.")
+
+    VK_MEDIA_PLAY_PAUSE = 0xB3
+    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
     return ToolResult(success=True, output="Resumed playback.")
 
 
 def stop_song(**kwargs) -> ToolResult:
-    """Stop currently playing audio, video, or music."""
-    from z3ro.window import find_window, focus_window
-    VK_MEDIA_STOP = 0xB2
-    VK_MEDIA_PLAY_PAUSE = 0xB3
-    _send_vk(VK_MEDIA_STOP, count=1)
-    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
+    """Stop currently playing audio, video, or music completely."""
+    global _current_song_process
+    import time
+    from z3ro.window import find_window, focus_window, list_windows
+
+    # 1. Stop any sounddevice audio playback
     try:
         import sounddevice as sd
         sd.stop()
     except Exception:
         pass
+
+    # 2. Terminate any active spawned song process
+    if _current_song_process is not None:
+        try:
+            if _current_song_process.poll() is None:
+                _current_song_process.terminate()
+                time.sleep(0.12)
+                if _current_song_process.poll() is None:
+                    _current_song_process.kill()
+        except Exception:
+            pass
+        _current_song_process = None
+
+    # 3. If a YouTube window exists on screen, bring to front and pause
     yt = find_window("YouTube")
     if yt:
         focus_window("YouTube")
+        time.sleep(0.08)
+        pyautogui.press("esc")
+        time.sleep(0.04)
         pyautogui.press("k")
+        time.sleep(0.04)
+        return ToolResult(success=True, output="Stopped playback.")
+
+    # 4. Fallback: Hardware Media Stop / Pause keys if no specific YouTube window
+    VK_MEDIA_STOP = 0xB2
+    VK_MEDIA_PLAY_PAUSE = 0xB3
+    _send_vk(VK_MEDIA_STOP, count=1)
+    _send_vk(VK_MEDIA_PLAY_PAUSE, count=1)
+
     return ToolResult(success=True, output="Stopped playback.")
+
+
+def close_app(app: str = "", **kwargs) -> ToolResult:
+    """Close an application or window by name."""
+    global _current_song_process
+    import ctypes
+    from z3ro.window import find_window, list_windows
+    user32 = ctypes.windll.user32
+    WM_CLOSE = 0x0010
+
+    query = (app or kwargs.get("title") or "").strip().lower()
+    if not query:
+        return ToolResult(success=False, output="Application name required.")
+
+    # Terminate active song process if closing youtube/song
+    if query in ("youtube", "song", "music", "video") and _current_song_process:
+        try:
+            if _current_song_process.poll() is None:
+                _current_song_process.terminate()
+            _current_song_process = None
+        except Exception:
+            pass
+
+    # Find matching window and post WM_CLOSE
+    target_window = None
+    for w in list_windows():
+        if query in w.title.lower():
+            target_window = w
+            break
+
+    if target_window:
+        user32.PostMessageW(target_window.hwnd, WM_CLOSE, 0, 0)
+        return ToolResult(success=True, output=f"Closed {target_window.title}.")
+
+    # Fallback to taskkill
+    try:
+        import subprocess
+        subprocess.run(["taskkill", "/F", "/IM", f"{query}.exe"], capture_output=True, timeout=2)
+        return ToolResult(success=True, output=f"Closed {app}.")
+    except Exception:
+        pass
+
+    return ToolResult(success=True, output=f"Closed {app}.")
 
 
 def next_song(song: str = "", **kwargs) -> ToolResult:
@@ -802,6 +888,12 @@ TOOLS = {
             "Open an approved Windows application."
         ),
         function=open_app,
+    ),
+
+    "close_app": Tool(
+        name="close_app",
+        description="Close an open application or window.",
+        function=close_app,
     ),
 
     "play_song": Tool(

@@ -56,23 +56,35 @@ def parse_direct_intent(user_input: str) -> Optional[Plan]:
         return Plan(actions=[PlannedAction(action="mute_volume")])
 
     # 2. Playback: Stop, Pause, Resume
-    if any(p in lowered for p in (
+    stop_triggers = (
         "stop song", "stop the song", "stop music", "stop the music",
-        "stop video", "stop the video", "stop playing", "stop playback"
-    )) or lowered == "stop":
+        "stop video", "stop the video", "stop playing", "stop playback",
+        "stop audio", "stop it", "stop this", "stop that",
+        "close song", "close the song", "close music", "close video",
+        "turn off song", "turn off the song", "turn off music", "turn off the music",
+        "kill song", "kill the song", "kill music",
+        "stop youtube", "close youtube", "exit youtube",
+        "shut up", "be quiet", "silence",
+        "its not stopping the song", "not stopping the song", "stop the song fix it",
+    )
+    if any(p in lowered for p in stop_triggers) or lowered in ("stop", "stop it", "silence", "shutup", "quiet"):
         return Plan(actions=[PlannedAction(action="stop_song")])
 
-    if any(p in lowered for p in (
+    pause_triggers = (
         "pause song", "pause the song", "pause music", "pause the music",
-        "pause video", "pause the video", "pause playback"
-    )) or lowered == "pause":
+        "pause video", "pause the video", "pause playback", "pause audio",
+        "pause it", "hold on", "freeze"
+    )
+    if any(p in lowered for p in pause_triggers) or lowered in ("pause", "pause it"):
         return Plan(actions=[PlannedAction(action="pause_song")])
 
-    if any(p in lowered for p in (
+    resume_triggers = (
         "resume song", "resume the song", "resume music", "resume the music",
         "resume video", "resume the video", "resume playback", "unpause",
-        "continue song", "continue playing"
-    )) or lowered == "resume":
+        "continue song", "continue playing", "play again", "keep playing",
+        "resume it"
+    )
+    if any(p in lowered for p in resume_triggers) or lowered in ("resume", "unpause", "play"):
         return Plan(actions=[PlannedAction(action="resume_song")])
 
     # 3. Change video / Next song / Skip
@@ -169,6 +181,14 @@ def parse_direct_intent(user_input: str) -> Optional[Plan]:
         target = m_open.group(1).strip()
         if not any(k in target.lower() for k in ("and ", "then ", "window")):
             return Plan(actions=[PlannedAction(action="open_app", app=target)])
+
+    # 9. Pure Close App
+    m_close = re.match(r"^(?:close|quit|exit|kill|terminate)\s+([a-zA-Z0-9_\s\.\-]+)$", clean, re.IGNORECASE)
+    if m_close:
+        target = m_close.group(1).strip()
+        if target.lower() in ("song", "the song", "music", "the music", "video", "the video", "playback"):
+            return Plan(actions=[PlannedAction(action="stop_song")])
+        return Plan(actions=[PlannedAction(action="close_app", app=target)])
 
     return None
 
@@ -362,6 +382,9 @@ class Z3ROAgent:
 
         if action.action == "previous_song":
             return execute_tool("previous_song")
+
+        if action.action == "close_app":
+            return execute_tool("close_app", app=action.app or action.title or "")
 
         return None
 
