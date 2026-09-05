@@ -38,7 +38,7 @@ function createWindow() {
     },
   });
 
-  mainWindow.setAlwaysOnTop(true, "screen-saver");
+  mainWindow.setAlwaysOnTop(true, "floating");
   mainWindow.loadFile(path.join(__dirname, "index.html"));
 
   // Initial mouse passthrough outside island
@@ -48,6 +48,12 @@ function createWindow() {
   ipcMain.on("set-ignore-mouse-events", (event, { ignore, forward }) => {
     if (!mainWindow) return;
     mainWindow.setIgnoreMouseEvents(ignore, { forward: forward || false });
+  });
+
+  ipcMain.on("blur-window", () => {
+    if (mainWindow) {
+      mainWindow.blur();
+    }
   });
 
   ipcMain.on("close-app", () => {

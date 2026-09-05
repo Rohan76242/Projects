@@ -169,6 +169,15 @@ def open_app(
             except Exception:
                 subprocess.Popen([target_path], shell=False)
 
+        # Give newly launched application window time to initialize and bring to foreground
+        import time
+        time.sleep(0.35)
+        try:
+            from z3ro.window import focus_window
+            focus_window(app_name, timeout=2.0)
+        except Exception:
+            pass
+
         # Output friendly name ONLY — never speak raw file path!
         return ToolResult(
             success=True,
@@ -424,18 +433,19 @@ def double_click_mouse() -> ToolResult:
 
 def type_text(
     text: str,
+    title: str = None,
+    app: str = None,
+    **kwargs,
 ) -> ToolResult:
-    """Type controlled text."""
+    """Type text into the target application, ensuring Electron overlay never steals typing."""
 
     if not isinstance(text, str):
-
         return ToolResult(
             success=False,
             output="Text must be a string.",
         )
 
     if not text:
-
         return ToolResult(
             success=False,
             output="No text supplied.",
@@ -448,13 +458,34 @@ def type_text(
         )
 
     import time
+    from z3ro.window import get_foreground_window, focus_window, list_windows
+
+    target_title = title or app or kwargs.get("window")
+    if target_title:
+        focus_window(target_title, timeout=2.5)
+        time.sleep(0.12)
+    else:
+        # Check foreground window. If it is the Electron Dynamic Island overlay or Python, switch focus to the user's active application!
+        try:
+            fg = get_foreground_window()
+            if fg and any(term in fg.title.lower() for term in ("electron", "dynamic island", "z3ro", "sobia")):
+                candidates = [
+                    w for w in list_windows()
+                    if not any(t in w.title.lower() for t in ("electron", "dynamic island", "task switching", "program manager", "z3ro", "sobia"))
+                ]
+                if candidates:
+                    focus_window(candidates[0].title, timeout=1.0)
+                    time.sleep(0.12)
+        except Exception:
+            pass
+
     try:
         import pyperclip
         # Fast & universal clipboard paste (works across WhatsApp, Telegram, Notepad, Chrome, Word, etc.)
         pyperclip.copy(text)
-        time.sleep(0.04)
+        time.sleep(0.06)
         pyautogui.hotkey("ctrl", "v")
-        time.sleep(0.04)
+        time.sleep(0.06)
         return ToolResult(
             success=True,
             output=f"Typed text: {text[:50]}...",

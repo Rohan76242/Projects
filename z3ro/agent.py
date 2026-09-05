@@ -136,7 +136,7 @@ def parse_direct_intent(user_input: str) -> Optional[Plan]:
         return Plan(actions=[PlannedAction(action="play_song", song=song_q)])
 
     # 6. Compound: Open app and type
-    m_compound = re.match(r"^(?:open|launch)\s+([a-zA-Z0-9_\s]+?)\s+and\s+(?:type|write|enter)\s+(.+)$", clean, re.IGNORECASE)
+    m_compound = re.match(r"^(?:open|launch)\s+([a-zA-Z0-9_\s]+?)\s+(?:and|,|then)\s+(?:type|write|enter)\s+(.+)$", clean, re.IGNORECASE)
     if m_compound:
         app_name = m_compound.group(1).strip()
         type_str = m_compound.group(2).strip()
@@ -144,7 +144,18 @@ def parse_direct_intent(user_input: str) -> Optional[Plan]:
             PlannedAction(action="open_app", app=app_name),
             PlannedAction(action="find_window", title=app_name),
             PlannedAction(action="focus_window", title=app_name),
-            PlannedAction(action="type_text", text=type_str),
+            PlannedAction(action="type_text", text=type_str, title=app_name),
+        ])
+
+    # 6b. Targeted Typing: type <text> in/into/on <app>
+    m_target = re.match(r"^(?:type|write|enter)\s+(.+?)\s+(?:in|into|on)\s+([a-zA-Z0-9_\s]+)$", clean, re.IGNORECASE)
+    if m_target:
+        type_str = m_target.group(1).strip()
+        target_app = m_target.group(2).strip()
+        return Plan(actions=[
+            PlannedAction(action="find_window", title=target_app),
+            PlannedAction(action="focus_window", title=target_app),
+            PlannedAction(action="type_text", text=type_str, title=target_app),
         ])
 
     # 7. Pure Type Text
@@ -169,6 +180,7 @@ class Z3ROAgent:
         self.brain = LocalBrain()
         self.planner = Planner()
         self.vision = Vision()
+        self.last_active_app: Optional[str] = None
 
     def build_plan(self, user_input: str):
         # 1. Fast-path intent parser (instant, zero errors)
@@ -240,27 +252,32 @@ class Z3ROAgent:
         action,
     ):
         if action.action == "open_app":
+            self.last_active_app = action.app
             return execute_tool(
                 "open_app",
                 app=action.app,
             )
 
         if action.action == "find_window":
+            self.last_active_app = action.title
             return execute_tool(
                 "find_window",
                 title=action.title,
             )
 
         if action.action == "focus_window":
+            self.last_active_app = action.title
             return execute_tool(
                 "focus_window",
                 title=action.title,
             )
 
         if action.action == "type_text":
+            target_title = action.title or action.app or self.last_active_app
             return execute_tool(
                 "type_text",
                 text=action.text,
+                title=target_title,
             )
 
         if action.action == "press_key":

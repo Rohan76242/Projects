@@ -132,6 +132,46 @@ class MediaAndIntentTests(unittest.TestCase):
         res_prev = previous_song()
         self.assertTrue(res_prev.success)
 
+    def test_compound_and_targeted_typing_intents(self):
+        """Test that typing commands correctly target the external application."""
+        # Compound open and type
+        p1 = parse_direct_intent("open notepad and type hello world")
+        self.assertIsNotNone(p1)
+        self.assertEqual(len(p1.actions), 4)
+        self.assertEqual(p1.actions[0].action, "open_app")
+        self.assertEqual(p1.actions[0].app, "notepad")
+        self.assertEqual(p1.actions[3].action, "type_text")
+        self.assertEqual(p1.actions[3].text, "hello world")
+        self.assertEqual(p1.actions[3].title, "notepad")
+
+        # Targeted typing in app
+        p2 = parse_direct_intent("type meeting notes in word")
+        self.assertIsNotNone(p2)
+        self.assertEqual(len(p2.actions), 3)
+        self.assertEqual(p2.actions[0].action, "find_window")
+        self.assertEqual(p2.actions[0].title, "word")
+        self.assertEqual(p2.actions[1].action, "focus_window")
+        self.assertEqual(p2.actions[1].title, "word")
+        self.assertEqual(p2.actions[2].action, "type_text")
+        self.assertEqual(p2.actions[2].text, "meeting notes")
+        self.assertEqual(p2.actions[2].title, "word")
+
+    @patch("z3ro.agent.execute_tool")
+    def test_last_active_app_tracking(self, mock_exec):
+        """Test agent tracks last opened/focused app for subsequent typing."""
+        from z3ro.planner import PlannedAction
+        from z3ro.tools.system import ToolResult
+        mock_exec.return_value = ToolResult(success=True, output="OK")
+
+        agent = Z3ROAgent()
+        self.assertIsNone(agent.last_active_app)
+
+        agent.execute_action(PlannedAction(action="open_app", app="notepad"))
+        self.assertEqual(agent.last_active_app, "notepad")
+
+        agent.execute_action(PlannedAction(action="type_text", text="hello"))
+        mock_exec.assert_called_with("type_text", text="hello", title="notepad")
+
 
 if __name__ == "__main__":
     unittest.main()

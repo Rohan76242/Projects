@@ -45,7 +45,16 @@
   // =========================================================================
   // 1. EXPAND / COLLAPSE DRAWER ANIMATION (120 FPS Fluid Morph)
   // =========================================================================
-  function toggleDrawer(forceState = null) {
+  function releaseElectronFocus() {
+    if (chatInput && document.activeElement === chatInput) {
+      chatInput.blur();
+    }
+    if (window.electronAPI && window.electronAPI.blurWindow) {
+      window.electronAPI.blurWindow();
+    }
+  }
+
+  function toggleDrawer(forceState = null, autoFocus = false) {
     const nextState = forceState !== null ? forceState : !isExpanded;
     if (isExpanded === nextState) return;
 
@@ -54,15 +63,18 @@
     if (isExpanded) {
       island.classList.remove("collapsed");
       island.classList.add("expanded");
-      // Delay focusing until transition completes to ensure 100% fluid extrusion without layout reflow
-      setTimeout(() => {
-        if (chatInput) chatInput.focus();
-        scrollToBottom();
-      }, 340);
+      if (autoFocus) {
+        setTimeout(() => {
+          if (chatInput) chatInput.focus();
+          scrollToBottom();
+        }, 340);
+      } else {
+        releaseElectronFocus();
+      }
     } else {
       island.classList.remove("expanded");
       island.classList.add("collapsed");
-      if (chatInput) chatInput.blur();
+      releaseElectronFocus();
     }
   }
 
@@ -91,7 +103,7 @@
   if (btnExpand) {
     btnExpand.addEventListener("click", (e) => {
       e.stopPropagation();
-      toggleDrawer();
+      toggleDrawer(null, true);
     });
   }
 
@@ -214,9 +226,14 @@
         break;
 
       case "action":
+        releaseElectronFocus();
         if (msg.description) {
           showActionBadge(msg.description);
         }
+        break;
+
+      case "blur_focus":
+        releaseElectronFocus();
         break;
 
       case "error":
@@ -443,10 +460,11 @@
   function appendMessage(role, text, isVoice = false) {
     if (!messageList) return;
 
-    // Automatically expand drawer if a message arrives and it is collapsed
+    // Expand drawer without stealing OS keyboard focus
     if (!isExpanded) {
-      toggleDrawer(true);
+      toggleDrawer(true, false);
     }
+    releaseElectronFocus();
 
     // Hide welcome hero on first message
     const welcomeHero = document.getElementById("welcome-hero");

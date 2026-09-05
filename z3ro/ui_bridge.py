@@ -211,7 +211,8 @@ class UIBridgeServer:
         self._abort_flag = False
         self.initialize_components()
 
-        # Step 1: Thinking state
+        # Step 1: Thinking state & release Electron keyboard focus
+        await self.broadcast({"type": "blur_focus"})
         await self.broadcast({"type": "status", "state": "thinking", "prompt": user_input})
 
         def run_agent():
