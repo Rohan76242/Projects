@@ -14,9 +14,6 @@ from z3ro.autonomy.objective import objective_manager
 from z3ro.autonomy.strategy import Strategy, StrategyLifecycle
 from z3ro.autonomy.evaluator import strategy_evaluator
 from z3ro.compliance.legal_filter import legal_filter
-from z3ro.business.opportunity_discovery import opportunity_discovery
-from z3ro.business.experiment import experiment_runner
-from z3ro.business.outcome import outcome_processor
 from z3ro.memory.strategies import strategy_memory
 from z3ro.economy.wallet import wallet
 from z3ro.economy.survival import survival_engine
@@ -32,6 +29,10 @@ class AutonomousLoopCoordinator:
 
     def run_discovery_cycle(self) -> Dict[str, Any]:
         """Execute one complete autonomous discovery & experimentation step (Section 7)."""
+        from z3ro.business.opportunity_discovery import opportunity_discovery
+        from z3ro.business.experiment import experiment_runner
+        from z3ro.business.outcome import outcome_processor
+
         # Step 1: Read current state & constraints
         constraints = objective_manager.get_current_constraints()
         if not constraints.is_operational:

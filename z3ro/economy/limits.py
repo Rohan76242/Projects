@@ -1,35 +1,53 @@
-"""Z3RO — Economy Limits, Rate Limiting, Reversibility, and Safety Boundary.
-
-Implements:
-- Section 9.1: Permission Table (Explicit capability whitelist & approval requirements)
-- Section 9.4: Spending Limits & Global Kill Switch
-- Section 9.5: Action-Rate Limiter (Hourly & Daily caps on external actions)
-- Section 9.6: Reversibility Check (Routes irreversible actions to human approval)
+"""limits.py — Hard caps on spending and action rate. This file is meant to
+be edited by YOU, the human, directly. Nothing in the agent's runtime
+should be able to write to this file or to the values it returns.
+Every tool call that spends money or takes an external-facing action must
+check against these limits BEFORE acting, via credentials.py or the
+planner's action gate.
 """
 
-import json
-import os
-import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Dict, List, Optional, Tuple, Any
+import json
+import time
+import sqlite3
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
+DB_PATH = Path(__file__).parent / "action_log.db"
+CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
+LIMITS_CONFIG_PATH = CONFIG_DIR / "spending_limits.json"
 
-CONFIG_DIR = Path(__file__).resolve().parent.parent / "data"
-LIMITS_CONFIG_PATH = CONFIG_DIR / "limits_config.json"
-STATE_PATH = CONFIG_DIR / "limits_state.json"
+# ---- Human-editable limits ----
+DAILY_SPEND_CAP = 5.00  # currency units, e.g. $5/day total agent spend
+SINGLE_TRANSACTION_CAP = 2.00  # max any single spend action
+MAX_CONCURRENT_COMMITMENTS = 1  # e.g. only 1 open paid subscription/listing at a time
+COOLDOWN_AFTER_FAILURE_SECONDS = 3600  # 1 hour cooldown after a rejected/failed action
+MAX_EXTERNAL_ACTIONS_PER_HOUR = 5
+MAX_EXTERNAL_ACTIONS_PER_DAY = 20
+KILL_SWITCH = False  # set True to hard-stop all external/spend actions immediately
 
 
 class CapabilityScope(str, Enum):
-    ALLOWED = "Allowed"
-    RESTRICTED = "Restricted"
-    DENIED = "Denied"
+    ALLOWED = "ALLOWED"
+    DENIED = "DENIED"
+    REQUIRES_HUMAN = "REQUIRES_HUMAN"
+    RESTRICTED = "RESTRICTED"
+    INTERNAL_REVERSIBLE = "INTERNAL_REVERSIBLE"
+    EXTERNAL_COMMUNICATION = "EXTERNAL_COMMUNICATION"
+    EXTERNAL_FINANCIAL = "EXTERNAL_FINANCIAL"
+    EXTERNAL_CONTRACTUAL = "EXTERNAL_CONTRACTUAL"
+    NEVER_ALLOWED = "NEVER_ALLOWED"
 
 
 class ActionReversibility(str, Enum):
     REVERSIBLE = "Reversible"
     IRREVERSIBLE = "Irreversible"
+
+
+class SafetyBoundaryError(Exception):
+    pass
 
 
 @dataclass
@@ -40,37 +58,60 @@ class PermissionRule:
     description: str
 
 
-# Section 9.1: Master Permission Table
 DEFAULT_PERMISSION_TABLE: Dict[str, PermissionRule] = {
     "web_research": PermissionRule(
         capability="web_research",
         default_scope=CapabilityScope.ALLOWED,
         requires_human_approval=False,
-        description="Web research, reading documentation, and search queries.",
+        description="Reading public web pages, search queries, documentation.",
     ),
     "draft_content_code": PermissionRule(
         capability="draft_content_code",
         default_scope=CapabilityScope.ALLOWED,
         requires_human_approval=False,
-        description="Drafting content, articles, code, and analytical reports in sandbox.",
+        description="Drafting content or code in temporary sandbox directory.",
+    ),
+    "browse_web_read_only": PermissionRule(
+        capability="browse_web_read_only",
+        default_scope=CapabilityScope.ALLOWED,
+        requires_human_approval=False,
+        description="Reading public web pages, search queries, documentation.",
+    ),
+    "local_file_read": PermissionRule(
+        capability="local_file_read",
+        default_scope=CapabilityScope.ALLOWED,
+        requires_human_approval=False,
+        description="Reading project files within the authorized workspace.",
+    ),
+    "local_file_write_draft": PermissionRule(
+        capability="local_file_write_draft",
+        default_scope=CapabilityScope.ALLOWED,
+        requires_human_approval=False,
+        description="Writing code and content drafts in isolated scratch workspace.",
+    ),
+    "local_code_execution_sandbox": PermissionRule(
+        capability="local_code_execution_sandbox",
+        default_scope=CapabilityScope.ALLOWED,
+        requires_human_approval=False,
+        description="Running Python unit tests and data processing scripts locally.",
     ),
     "send_external_message": PermissionRule(
         capability="send_external_message",
         default_scope=CapabilityScope.RESTRICTED,
         requires_human_approval=True,
-        description="Sending email, messaging chat contacts, or external outreach.",
+        description="Sending email, Slack, Discord, or direct messages to external entities.",
     ),
     "submit_external_form": PermissionRule(
         capability="submit_external_form",
         default_scope=CapabilityScope.RESTRICTED,
         requires_human_approval=True,
-        description="Submitting forms, posting content, or registering on third-party sites.",
+        description="Submitting account registration, platform forms, or public posts.",
     ),
     "payment_transfer_purchase": PermissionRule(
         capability="payment_transfer_purchase",
         default_scope=CapabilityScope.DENIED,
         requires_human_approval=True,
-        description="Any financial transaction, payment, or money transfer.",
+        description="Spending money, buying domains/APIs, or initiating financial transfers.",
     ),
     "sign_contract_tos": PermissionRule(
         capability="sign_contract_tos",
@@ -90,18 +131,106 @@ DEFAULT_PERMISSION_TABLE: Dict[str, PermissionRule] = {
 @dataclass
 class SpendingLimitsConfig:
     """Human-editable limits config (Section 9.4). Not modifiable by agent."""
-    daily_spend_cap: float = 200.0  # Max virtual currency that can be spent in 24 hours
-    single_transaction_cap: float = 50.0  # Max single expenditure without special override
+    daily_spend_cap: float = 200.0
+    single_transaction_cap: float = 50.0
     max_concurrent_open_commitments: int = 3
-    cooldown_period_seconds: float = 60.0  # Cooldown after any failed/rejected action
-    max_external_actions_per_hour: int = 15  # Section 9.5
-    max_external_actions_per_day: int = 60  # Section 9.5
-    kill_switch_active: bool = False  # Global kill-switch flag (Section 9.4)
+    cooldown_period_seconds: float = 60.0
+    max_external_actions_per_hour: int = 15
+    max_external_actions_per_day: int = 60
+    kill_switch_active: bool = False
 
 
-class SafetyBoundaryError(Exception):
-    """Raised when an action violates the safety boundary or limits."""
-    pass
+def _connect():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS action_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp REAL NOT NULL,
+        action_type TEXT NOT NULL, -- 'spend' or 'external_action'
+        amount REAL DEFAULT 0,
+        strategy_id TEXT,
+        outcome TEXT -- 'allowed', 'denied_cap', 'denied_rate', 'denied_kill_switch'
+    )
+    """)
+    conn.commit()
+    return conn
+
+
+def _log_action(action_type, amount, strategy_id, outcome):
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO action_log (timestamp, action_type, amount, strategy_id, outcome) VALUES (?,?,?,?,?)",
+            (time.time(), action_type, amount, strategy_id, outcome),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def check_spend_allowed(amount: float, strategy_id: str) -> tuple:
+    """Returns (allowed: bool, reason: str). Call before ANY agent spend."""
+    global KILL_SWITCH
+    if KILL_SWITCH or limits_manager.is_kill_switch_active():
+        _log_action("spend", amount, strategy_id, "denied_kill_switch")
+        return False, "Kill switch is active. No spending permitted."
+    if amount > SINGLE_TRANSACTION_CAP:
+        _log_action("spend", amount, strategy_id, "denied_cap")
+        return False, f"Amount {amount} exceeds single-transaction cap {SINGLE_TRANSACTION_CAP}."
+    conn = _connect()
+    try:
+        today_start = time.time() - 86400
+        spent_today = conn.execute(
+            "SELECT COALESCE(SUM(amount),0) FROM action_log "
+            "WHERE action_type='spend' AND outcome='allowed' AND timestamp > ?",
+            (today_start,),
+        ).fetchone()[0]
+    finally:
+        conn.close()
+
+    if spent_today + amount > DAILY_SPEND_CAP:
+        _log_action("spend", amount, strategy_id, "denied_cap")
+        return False, f"Would exceed daily spend cap ({spent_today}+{amount} > {DAILY_SPEND_CAP})."
+    _log_action("spend", amount, strategy_id, "allowed")
+    return True, "OK"
+
+
+def check_external_action_allowed(strategy_id: str) -> tuple:
+    """Returns (allowed: bool, reason: str). Call before ANY external-facing action
+    (sending a message, publishing content, submitting a form, API call to a 3rd party)."""
+    global KILL_SWITCH
+    if KILL_SWITCH or limits_manager.is_kill_switch_active():
+        _log_action("external_action", 0, strategy_id, "denied_kill_switch")
+        return False, "Kill switch is active. No external actions permitted."
+    conn = _connect()
+    try:
+        hour_start = time.time() - 3600
+        day_start = time.time() - 86400
+        recent_failure = conn.execute(
+            "SELECT COUNT(*) FROM action_log WHERE strategy_id=? AND outcome LIKE 'denied%' AND timestamp > ?",
+            (strategy_id, time.time() - COOLDOWN_AFTER_FAILURE_SECONDS),
+        ).fetchone()[0]
+        if recent_failure > 0:
+            return False, f"Strategy '{strategy_id}' is in cooldown after a recent denial."
+        count_hour = conn.execute(
+            "SELECT COUNT(*) FROM action_log WHERE action_type='external_action' AND outcome='allowed' AND timestamp > ?",
+            (hour_start,),
+        ).fetchone()[0]
+        count_day = conn.execute(
+            "SELECT COUNT(*) FROM action_log WHERE action_type='external_action' AND outcome='allowed' AND timestamp > ?",
+            (day_start,),
+        ).fetchone()[0]
+    finally:
+        conn.close()
+
+    if count_hour >= MAX_EXTERNAL_ACTIONS_PER_HOUR:
+        _log_action("external_action", 0, strategy_id, "denied_rate")
+        return False, f"Hourly external action limit reached ({MAX_EXTERNAL_ACTIONS_PER_HOUR})."
+    if count_day >= MAX_EXTERNAL_ACTIONS_PER_DAY:
+        _log_action("external_action", 0, strategy_id, "denied_rate")
+        return False, f"Daily external action limit reached ({MAX_EXTERNAL_ACTIONS_PER_DAY})."
+    _log_action("external_action", 0, strategy_id, "allowed")
+    return True, "OK"
 
 
 class ActionRateLimiter:
@@ -119,19 +248,19 @@ class ActionRateLimiter:
     def can_execute(self, now: Optional[float] = None) -> Tuple[bool, str]:
         current_time = now or time.time()
         self._purge_old(current_time)
-
-        # Count last hour
         hour_ago = current_time - 3600.0
         hour_count = sum(1 for t in self.action_timestamps if t >= hour_ago)
         if hour_count >= self.hourly_cap:
             return False, f"Hourly action limit reached ({hour_count}/{self.hourly_cap} in last hour)."
 
-        # Count last 24h
         day_count = len(self.action_timestamps)
         if day_count >= self.daily_cap:
             return False, f"Daily action limit reached ({day_count}/{self.daily_cap} in last 24h)."
 
         return True, "OK"
+
+    def can_perform_action(self) -> Tuple[bool, str]:
+        return self.can_execute()
 
     def record_action(self, now: Optional[float] = None):
         current_time = now or time.time()
@@ -186,13 +315,27 @@ class LimitsManager:
     # --- Kill Switch Controls (Section 9.4) ---
 
     def is_kill_switch_active(self) -> bool:
-        # Re-read file to pick up external/human edits instantly
+        if self is limits_manager:
+            global KILL_SWITCH
+            if KILL_SWITCH:
+                return True
         self.config = self._load_config()
         return self.config.kill_switch_active
 
     def set_kill_switch(self, active: bool):
+        if self is limits_manager:
+            global KILL_SWITCH
+            KILL_SWITCH = active
         self.config.kill_switch_active = active
         self._save_config(self.config)
+
+    def toggle_kill_switch(self, active: Optional[bool] = None) -> bool:
+        if active is None:
+            new_val = not self.is_kill_switch_active()
+        else:
+            new_val = active
+        self.set_kill_switch(new_val)
+        return new_val
 
     # --- Permission Checking (Section 9.1) ---
 
@@ -208,11 +351,17 @@ class LimitsManager:
             "submit_external_form",
             "payment_transfer_purchase",
             "sign_contract_tos",
+            "send_email",
+            "post_social",
+            "create_paid_ad",
+            "spend_money",
+            "accept_tos_agreement",
+            "delete_remote_asset",
+            "publish_deliverable",
         }
         if capability in irreversible_capabilities:
             return ActionReversibility.IRREVERSIBLE
 
-        # Content drafting, research, and reading local files are reversible
         return ActionReversibility.REVERSIBLE
 
     # --- Action Authorization Pre-Flight Gate ---
@@ -275,3 +424,8 @@ class LimitsManager:
 
 # Global limits manager instance
 limits_manager = LimitsManager()
+
+
+if __name__ == "__main__":
+    print(check_spend_allowed(1.50, "test_strategy"))
+    print(check_external_action_allowed("test_strategy"))

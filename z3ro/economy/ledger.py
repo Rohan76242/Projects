@@ -1,22 +1,179 @@
-"""Z3RO — Auditable Economic Ledger (SQLite).
+"""ledger.py — Append-only financial ledger.
 
-Implements Section 6 & 10.1:
-- Append-only, tamper-resistant transaction ledger.
-- Fields: timestamp, action, cost, verified_income, net, evidence_id, verification_source.
-- Read-only to agent planning runtime.
+Design rule: the agent (planner/brain) NEVER calls record_income() directly.
+Only verifier.py may call record_income(), and only after it has confirmed
+the income against a real third-party source. This file enforces that by
+requiring an `evidence` object on every income entry.
+
+The agent CAN call record_cost() for its own spending, but only up to the
+caps defined in limits.py (checked by the caller, e.g. tools/credentials.py).
 """
 
 import sqlite3
+import time
+import json
 import threading
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-
+DB_PATH = Path(__file__).parent / "ledger.db"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 ECONOMY_DB_PATH = DATA_DIR / "z3ro_economy.db"
+
+
+def _connect():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS ledger (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp REAL NOT NULL,
+        entry_type TEXT NOT NULL, -- 'income' or 'cost'
+        amount REAL NOT NULL,
+        strategy_id TEXT,
+        description TEXT,
+        evidence_source TEXT, -- e.g. 'youtube_adsense_api', 'amazon_associates_api'
+        evidence_id TEXT, -- the third-party's own transaction/report ID
+        evidence_raw TEXT, -- json blob of the raw API response, for audit
+        verified INTEGER NOT NULL DEFAULT 0
+    )
+    """)
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS withdrawals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp REAL NOT NULL,
+        amount REAL NOT NULL,
+        destination TEXT,
+        initiated_by TEXT NOT NULL DEFAULT 'human', -- always 'human' — enforced below
+        note TEXT
+    )
+    """)
+    conn.commit()
+    return conn
+
+
+def record_income(
+    amount: float,
+    strategy_id: str,
+    description: str,
+    evidence_source: str,
+    evidence_id: str,
+    evidence_raw: dict,
+):
+    """Record VERIFIED income only. Called exclusively by verifier.py after
+    it has confirmed money actually moved via a third-party API/webhook.
+    """
+    if not evidence_source or not evidence_id:
+        raise ValueError(
+            "Refusing to record income without evidence_source and evidence_id. "
+            "Unverified income must never enter the ledger."
+        )
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO ledger (timestamp, entry_type, amount, strategy_id, description, "
+            "evidence_source, evidence_id, evidence_raw, verified) VALUES (?,?,?,?,?,?,?,?,1)",
+            (
+                time.time(),
+                "income",
+                amount,
+                strategy_id,
+                description,
+                evidence_source,
+                evidence_id,
+                json.dumps(evidence_raw),
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    # Mirror to central economy db if active
+    try:
+        ledger.record_entry(
+            action=description,
+            cost=0.0,
+            verified_income=amount,
+            evidence_id=evidence_id,
+            verification_source=evidence_source,
+            status="VERIFIED",
+        )
+    except Exception:
+        pass
+
+
+def record_cost(amount: float, strategy_id: str, description: str):
+    """Record agent spending. Caller (credentials.py) must enforce spend caps BEFORE this."""
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO ledger (timestamp, entry_type, amount, strategy_id, description, verified) "
+            "VALUES (?,?,?,?,?,1)",
+            (time.time(), "cost", -abs(amount), strategy_id, description),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    # Mirror to central economy db if active
+    try:
+        ledger.record_entry(
+            action=description,
+            cost=abs(amount),
+            verified_income=0.0,
+            evidence_id=strategy_id,
+            verification_source="CREDENTIAL_SPEND",
+            status="VERIFIED",
+        )
+    except Exception:
+        pass
+
+
+def record_withdrawal(amount: float, destination: str, note: str = ""):
+    """Record a withdrawal to the user's real bank/account.
+    initiated_by is hard-coded to 'human' — this function should only ever
+    be called from a manual script or dashboard button the AGENT cannot trigger.
+    """
+    conn = _connect()
+    try:
+        conn.execute(
+            "INSERT INTO withdrawals (timestamp, amount, destination, initiated_by, note) "
+            "VALUES (?,?,?,?,?)",
+            (time.time(), amount, destination, "human", note),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_verified_balance() -> float:
+    """Total verified net resources currently available (income - costs - withdrawals)."""
+    conn = _connect()
+    try:
+        income_cost = conn.execute(
+            "SELECT COALESCE(SUM(amount),0) FROM ledger WHERE verified = 1"
+        ).fetchone()[0]
+        withdrawn = conn.execute(
+            "SELECT COALESCE(SUM(amount),0) FROM withdrawals"
+        ).fetchone()[0]
+        return round(income_cost - withdrawn, 2)
+    finally:
+        conn.close()
+
+
+def get_history(limit: int = 50):
+    conn = _connect()
+    try:
+        rows = conn.execute(
+            "SELECT timestamp, entry_type, amount, strategy_id, description, evidence_source, evidence_id "
+            "FROM ledger ORDER BY id DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return rows
+    finally:
+        conn.close()
 
 
 class Ledger:
@@ -128,3 +285,10 @@ class Ledger:
 
 # Global singleton instance
 ledger = Ledger()
+
+
+if __name__ == "__main__":
+    print("Current verified balance:", get_verified_balance())
+    print("Recent entries:")
+    for r in get_history(10):
+        print(r)

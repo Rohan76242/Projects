@@ -1,11 +1,10 @@
-"""Z3RO — Jurisdiction Rules & Compliance Standards.
+"""jurisdiction_rules.py — Static rule set the legal filter checks candidates
+against. This is intentionally simple and human-editable, NOT agent-editable.
+Update this file yourself as laws/platform ToS change; the agent only reads it.
 
-Implements Section 9.2:
-- Licensing requirements (lending, financial advice, reselling, securities)
-- Anti-spam & CAN-SPAM regulations (bulk messaging, harvesting, missing opt-outs)
-- Platform Terms of Service compliance (automation bans, multi-accounting)
-- Web scraping & robots.txt rules
-- Consumer protection principles (deceptive claims, hidden commitments)
+This is not legal advice. It's a first-pass filter to catch the obvious,
+high-confidence red flags before a strategy reaches execution. A genuinely
+novel strategy should still get human review even if it passes this filter.
 """
 
 import re
@@ -13,7 +12,64 @@ import urllib.robotparser
 import urllib.parse
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set, Dict
+
+
+# Channels that are hard-blocked regardless of strategy details.
+# These require licenses/registration Z3RO cannot hold on your behalf.
+HARD_BLOCKED_CHANNELS = {
+    "lending",
+    "payday_loans",
+    "investment_advice",
+    "financial_advice",
+    "insurance_sales",
+    "forex_trading_signals",
+    "crypto_trading_bot_for_others",
+    "money_transmission",
+    "gambling",
+    "prescription_drug_sales",
+    "unlicensed_healthcare_advice",
+}
+
+# Keywords in a strategy description that should trigger automatic rejection
+# or escalation, even if the channel itself looks benign.
+BLOCKED_KEYWORDS = [
+    "guaranteed returns", "guaranteed income", "get rich quick",
+    "bypass verification", "fake reviews", "buy followers", "buy views",
+    "scrape personal data", "email scraping", "cold email blast",
+    "unlicensed", "without disclosure", "hide affiliate",
+    "pyramid", "mlm", "chain referral bonus",
+]
+
+# Channels allowed, but with a mandatory disclosure or compliance requirement.
+DISCLOSURE_REQUIRED = {
+    "affiliate": "Must include clear, platform-compliant affiliate disclosure "
+                 "(e.g. 'As an Amazon Associate I earn from qualifying purchases').",
+    "sponsored_content": "Must disclose sponsorship per FTC-equivalent rules "
+                          "in the relevant jurisdiction.",
+    "ai_generated_content": "Some platforms/regions require AI-generated content "
+                            "labeling — check target platform's current policy "
+                            "before publishing.",
+}
+
+# Per-platform automation restrictions worth checking before any bot-driven
+# action (bidding, posting, messaging) on that platform.
+PLATFORM_TOS_NOTES = {
+    "upwork": "Prohibits automated bidding/proposal submission by bots.",
+    "fiverr": "Requires human-operated seller accounts; no bot-run gigs.",
+    "amazon_associates": "Requires disclosure; prohibits incentivized clicks "
+                         "and cloaking affiliate links.",
+    "youtube": "Requires AI-content disclosure for realistic synthetic media "
+               "per current YouTube policy; check before upload.",
+    "reddit": "Prohibits undisclosed bot posting/commenting in most subreddits.",
+}
+
+# Countries/regions with notably strict rules on automated financial agents
+# or AI-generated commercial content — flag for extra review, don't auto-block.
+FLAG_FOR_REVIEW_REGIONS = {
+    "EU": "AI Act transparency obligations for certain AI-generated content.",
+    "US-CA": "State-level automated decision-making disclosure rules.",
+}
 
 
 class RuleCategory(str, Enum):
@@ -77,6 +133,19 @@ class JurisdictionRulesEvaluator:
         """Scan strategy description against all core regulatory patterns."""
         violations: List[ComplianceViolation] = []
         lowered = text.lower()
+
+        # Check blocked keywords directly
+        for kw in BLOCKED_KEYWORDS:
+            if kw in lowered:
+                violations.append(
+                    ComplianceViolation(
+                        rule_id="RULE_KEYWORD_BLOCKED",
+                        category=RuleCategory.CONSUMER_PROTECTION,
+                        severity="BLOCK",
+                        reason=f"Description contains blocked keyword/pattern: '{kw}'",
+                        matched_pattern=kw,
+                    )
+                )
 
         # 1. Licensing rules
         for pattern, reason in LICENSING_PATTERNS:
