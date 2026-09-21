@@ -8,8 +8,8 @@ app.commandLine.appendSwitch("ignore-gpu-blocklist");
 
 let mainWindow = null;
 
-const CANVAS_WIDTH = 460;
-const CANVAS_HEIGHT = 500;
+const CANVAS_WIDTH = 640;
+const CANVAS_HEIGHT = 560;
 
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -56,6 +56,19 @@ function createWindow() {
     if (mainWindow) {
       mainWindow.blur();
     }
+  });
+
+  ipcMain.on("resize-window", (event, { width, height }) => {
+    if (!mainWindow) return;
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth } = primaryDisplay.workAreaSize;
+    const newX = Math.round((screenWidth - width) / 2);
+    mainWindow.setBounds({
+      x: newX,
+      y: 16,
+      width: Math.round(width),
+      height: Math.round(height),
+    });
   });
 
   ipcMain.on("close-app", () => {

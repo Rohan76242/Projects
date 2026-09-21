@@ -1,0 +1,1 @@
+2026-09-05 21:54:59.271 <string>[7] <module> -> Find Control Timeout(3s): {SubName: 'WhatsApp', ControlType: WindowControl}

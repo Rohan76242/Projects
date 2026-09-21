@@ -1,8 +1,8 @@
 # =============================================================================
 #                 Z3RO / SOBIA PC APPLICATIONS & DRIVERS REGISTRY
 # =============================================================================
-# Generated on: 2026-09-05 04:13:13
-# Total Indexed Applications & Tools: 566
+# Generated on: 2026-09-05 22:20:00
+# Total Indexed Applications & Tools: 412
 # Format: Application Name | Executable Path
 # =============================================================================
 
@@ -12,7 +12,6 @@ AcroBroker | C:\Program Files\Adobe\Acrobat DC\Acrobat\AcroBroker.exe
 AcroCEF | C:\Program Files\Adobe\Acrobat DC\Acrobat\AcroCEF\AcroCEF.exe
 AcroTextExtractor | C:\Program Files\Adobe\Acrobat DC\Acrobat\AcroTextExtractor.exe
 ADelRCP | C:\Program Files\Adobe\Acrobat DC\Acrobat\ADelRCP.exe
-adig | C:\Program Files\Git\mingw64\bin\adig.exe
 Administrative Tools | C:\WINDOWS\system32\control.exe
 ADNotificationManager | C:\Program Files\Adobe\Acrobat DC\Acrobat\ADNotificationManager.exe
 Adobe Acrobat | C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe
@@ -22,219 +21,115 @@ AdobeARM UCB | C:\Program Files (x86)\Common Files\Adobe\ARM\1.0\UCB\AdobeARM_UC
 AdobeARMHelper | C:\Program Files (x86)\Common Files\Adobe\ARM\1.0\AdobeARMHelper.exe
 AdobeCollabSync | C:\Program Files\Adobe\Acrobat DC\Acrobat\AdobeCollabSync.exe
 AdobeFips | C:\Program Files\Adobe\Acrobat DC\Acrobat\OSSLLibs\AdobeFips.exe
-ahost | C:\Program Files\Git\mingw64\bin\ahost.exe
+aitstatic | C:\Program Files (x86)\Windows Kits\10\App Certification Kit\aitstatic.exe
 AMPDevicesAgent | C:\Program Files\WindowsApps\AppleInc.AppleDevices_1.1540.23042.0_x64__nzyj5cx40ttqa\AMPDevicesAgent.exe
 Antigravity | C:\Users\Rohan\AppData\Local\Programs\antigravity\Antigravity.exe
 Antigravity IDE | C:\Users\Rohan\Downloads\Antigravity IDE.exe
 Antigravity-x64 | C:\Users\Rohan\Downloads\Antigravity-x64.exe
-antiword | C:\Program Files\Git\mingw64\bin\antiword.exe
+appcert | C:\Program Files (x86)\Windows Kits\10\App Certification Kit\appcert.exe
+Apple Devices | shell:AppsFolder\AppleInc.AppleDevices_nzyj5cx40ttqa!App
 AppleDevices | C:\Program Files\WindowsApps\AppleInc.AppleDevices_1.1540.23042.0_x64__nzyj5cx40ttqa\AppleDevices.exe
 Application Verifier (WOW) | C:\Windows\SysWOW64\appverif.exe
 Application Verifier (X64) | C:\Windows\System32\appverif.exe
-arch | C:\Program Files\Git\usr\bin\arch.exe
 armsvc | C:\Program Files (x86)\Common Files\Adobe\ARM\1.0\armsvc.exe
-b2sum | C:\Program Files\Git\usr\bin\b2sum.exe
-base32 | C:\Program Files\Git\usr\bin\base32.exe
-base64 | C:\Program Files\Git\usr\bin\base64.exe
-basename | C:\Program Files\Git\usr\bin\basename.exe
-basenc | C:\Program Files\Git\usr\bin\basenc.exe
-bash | C:\Program Files\Git\usr\bin\bash.exe
-blocked-file-util | C:\Program Files\Git\mingw64\bin\blocked-file-util.exe
+bash | C:\Program Files\Git\bin\bash.exe
 Brave | C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe
 BraveBrowserSetup-BRV010 | C:\Users\Rohan\Downloads\BraveBrowserSetup-BRV010.exe
-BraveUpdate | C:\Program Files (x86)\BraveSoftware\Update\BraveUpdate.exe
-brotli | C:\Program Files\Git\mingw64\bin\brotli.exe
-bunzip2 | C:\Program Files\Git\usr\bin\bunzip2.exe
-bzcat | C:\Program Files\Git\usr\bin\bzcat.exe
-bzip2 | C:\Program Files\Git\usr\bin\bzip2.exe
-bzip2recover | C:\Program Files\Git\usr\bin\bzip2recover.exe
+BraveCrashHandler | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveCrashHandler.exe
+BraveCrashHandler64 | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveCrashHandler64.exe
+BraveCrashHandlerArm64 | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveCrashHandlerArm64.exe
+BraveUpdate | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveUpdate.exe
+BraveUpdateBroker | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveUpdateBroker.exe
+BraveUpdateComRegisterShell64 | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveUpdateComRegisterShell64.exe
+BraveUpdateComRegisterShellArm64 | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveUpdateComRegisterShellArm64.exe
+BraveUpdateCore | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveUpdateCore.exe
+BraveUpdateOnDemand | C:\Program Files (x86)\BraveSoftware\Update\1.3.361.151\BraveUpdateOnDemand.exe
 Calculator | C:\Windows\System32\calc.exe
-captoinfo | C:\Program Files\Git\usr\bin\captoinfo.exe
+Camera | shell:AppsFolder\Microsoft.WindowsCamera_8wekyb3d8bbwe!App
 Character Map | C:\WINDOWS\system32\charmap.exe
+ChatGPT | shell:AppsFolder\OpenAI.Codex_2p2nqsd0c76g0!App
 ChatGPT Installer | C:\Users\Rohan\Downloads\ChatGPT Installer.exe
-chattr | C:\Program Files\Git\usr\bin\chattr.exe
-chcon | C:\Program Files\Git\usr\bin\chcon.exe
-chgrp | C:\Program Files\Git\usr\bin\chgrp.exe
-chmod | C:\Program Files\Git\usr\bin\chmod.exe
-chown | C:\Program Files\Git\usr\bin\chown.exe
+chrome proxy | C:\Program Files\BraveSoftware\Brave-Browser\Application\chrome_proxy.exe
 ChromeSetup | C:\Users\Rohan\Downloads\ChromeSetup.exe
-chroot | C:\Program Files\Git\usr\bin\chroot.exe
-cksum | C:\Program Files\Git\usr\bin\cksum.exe
+Claude | shell:AppsFolder\Claude_pzs8sxrjxfjjc!Claude
 Claude Setup | C:\Users\Rohan\Downloads\Claude Setup.exe
-clear | C:\Program Files\Git\usr\bin\clear.exe
+Click to Do | shell:AppsFolder\MicrosoftWindows.Client.CoreAI_cw5n1h2txyewy!ClickToDoApp
+Clock | shell:AppsFolder\Microsoft.WindowsAlarms_8wekyb3d8bbwe!App
 Cloudflare One Client | C:\Program Files\Cloudflare\Cloudflare WARP\Cloudflare WARP.exe
 code-tunnel | C:\Users\Rohan\AppData\Local\Programs\Microsoft VS Code\bin\code-tunnel.exe
 CodeCoverage | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe
-column | C:\Program Files\Git\usr\bin\column.exe
-comm | C:\Program Files\Git\usr\bin\comm.exe
+Command Prompt | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\cmd.exe
 Component Services | C:\WINDOWS\system32\comexp.msc
 Computer Management | C:\WINDOWS\system32\compmgmt.msc
 ConfigSecurityPolicy | C:\Program Files\Windows Defender\ConfigSecurityPolicy.exe
-connect | C:\Program Files\Git\mingw64\bin\connect.exe
+Control Panel | shell:AppsFolder\Microsoft.Windows.ControlPanel
+cookie exporter | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\cookie_exporter.exe
 Copilot | C:\Program Files (x86)\Microsoft\Copilot\Application\152.0.4191.64\mscopilot.exe
-CopilotUpdate | C:\Program Files (x86)\Microsoft\EdgeUpdate\CopilotUpdate.exe
+copilotapp | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\copilotapp.exe
+CopilotUpdate | C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.265.7\CopilotUpdate.exe
 covinstrc32 | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Team Tools\Dynamic Code Coverage Tools\covinstrc32.exe
 CPInstCU | C:\Program Files\Adobe\Acrobat DC\Acrobat\CPInstCU.exe
-create-shortcut | C:\Program Files\Git\mingw64\bin\create-shortcut.exe
 CRLogTransport | C:\Program Files\Adobe\Acrobat DC\Acrobat\CRLogTransport.exe
 CRWindowsClientService | C:\Program Files\Adobe\Acrobat DC\Acrobat\CRWindowsClientService.exe
-csplit | C:\Program Files\Git\usr\bin\csplit.exe
-curl | C:\Program Files\Git\mingw64\bin\curl.exe
-cygcheck | C:\Program Files\Git\usr\bin\cygcheck.exe
-cygpath | C:\Program Files\Git\usr\bin\cygpath.exe
-cygwin-console-helper | C:\Program Files\Git\usr\bin\cygwin-console-helper.exe
-dash | C:\Program Files\Git\usr\bin\dash.exe
-date | C:\Program Files\Git\usr\bin\date.exe
 DDConfigCA | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\DDConfigCA.exe
+Defragment and Optimise Drives | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\dfrgui.exe
+Dev Home | shell:AppsFolder\Microsoft.Windows.DevHome_8wekyb3d8bbwe!App
+Developer Command Prompt for VS | shell:AppsFolder\Microsoft.AutoGenerated.{B01147A4-E554-761F-B533-FF3E10213F31}
 Developer PowerShell for VS | C:\Windows\SysWOW64\WindowsPowerShell\v1.0\powershell.exe
 Device Manager (Drivers) | C:\Windows\System32\devmgmt.msc
 dfrgui | C:\WINDOWS\system32\dfrgui.exe
-diff | C:\Program Files\Git\usr\bin\diff.exe
-diff3 | C:\Program Files\Git\usr\bin\diff3.exe
-dircolors | C:\Program Files\Git\usr\bin\dircolors.exe
 DirectX Diagnostic Tool (GPU/Drivers) | C:\Windows\System32\dxdiag.exe
-dirmngr | C:\Program Files\Git\usr\bin\dirmngr.exe
-dirmngr-client | C:\Program Files\Git\usr\bin\dirmngr-client.exe
-dirname | C:\Program Files\Git\usr\bin\dirname.exe
+Disk Clean-up | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\cleanmgr.exe
 Disk Cleanup | C:\WINDOWS\system32\cleanmgr.exe
 DlpUserAgent | C:\Program Files\Windows Defender\DlpUserAgent.exe
-dos2unix | C:\Program Files\Git\usr\bin\dos2unix.exe
 drivers | C:\Program Files (x86)\Steam\bin\drivers.exe
-dumpsexp | C:\Program Files\Git\usr\bin\dumpsexp.exe
-echo | C:\Program Files\Git\usr\bin\echo.exe
-edit test | C:\Program Files\Git\mingw64\bin\edit_test.exe
-edit test dll | C:\Program Files\Git\mingw64\bin\edit_test_dll.exe
-envsubst | C:\Program Files\Git\mingw64\bin\envsubst.exe
+DTS:X Ultra | shell:AppsFolder\DTSInc.DTSXUltra_t5j2fzbtdg37r!App
+dump64 | C:\Program Files (x86)\Microsoft Visual Studio\Installer\Feedback\dump64.exe
+dump64a | C:\Program Files (x86)\Microsoft Visual Studio\Installer\Feedback\dump64a.exe
+elevated tracing service | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\elevated_tracing_service.exe
+elevation service | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\elevation_service.exe
 errlook | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\errlook.exe
 Eula | C:\Program Files\Adobe\Acrobat DC\Acrobat\Eula.exe
 Event Viewer | C:\WINDOWS\system32\eventvwr.msc
-expand | C:\Program Files\Git\usr\bin\expand.exe
-expr | C:\Program Files\Git\usr\bin\expr.exe
 ExtExport | C:\Program Files (x86)\Internet Explorer\ExtExport.exe
-factor | C:\Program Files\Git\usr\bin\factor.exe
-false | C:\Program Files\Git\usr\bin\false.exe
+Family | shell:AppsFolder\MicrosoftCorporationII.MicrosoftFamily_8wekyb3d8bbwe!App
 feedback | C:\Program Files (x86)\Microsoft Visual Studio\Installer\feedback.exe
-file | C:\Program Files\Git\usr\bin\file.exe
-find | C:\Program Files\Git\usr\bin\find.exe
-fold | C:\Program Files\Git\usr\bin\fold.exe
+Feedback Hub | shell:AppsFolder\Microsoft.WindowsFeedbackHub_8wekyb3d8bbwe!App
+File Explorer | shell:AppsFolder\Microsoft.Windows.Explorer
 fossilize-replay | C:\Program Files (x86)\Steam\bin\fossilize-replay.exe
 fossilize-replay64 | C:\Program Files (x86)\Steam\bin\fossilize-replay64.exe
 frcode | C:\Program Files\Git\usr\libexec\frcode.exe
 FullTrustNotifier | C:\Program Files\Adobe\Acrobat DC\Acrobat\RDCNotificationClient\FullTrustNotifier.exe
-funzip | C:\Program Files\Git\usr\bin\funzip.exe
+Game Bar | shell:AppsFolder\Microsoft.XboxGamingOverlay_8wekyb3d8bbwe!App
 gameoverlayui | C:\Program Files (x86)\Steam\gameoverlayui.exe
 gameoverlayui64 | C:\Program Files (x86)\Steam\gameoverlayui64.exe
-gawk | C:\Program Files\Git\usr\bin\gawk.exe
-gawk-5.4.0 | C:\Program Files\Git\usr\bin\gawk-5.4.0.exe
-gdbm dump | C:\Program Files\Git\usr\bin\gdbm_dump.exe
-gdbm load | C:\Program Files\Git\usr\bin\gdbm_load.exe
-gdbmtool | C:\Program Files\Git\usr\bin\gdbmtool.exe
-gencat | C:\Program Files\Git\usr\bin\gencat.exe
-getconf | C:\Program Files\Git\usr\bin\getconf.exe
-getfacl | C:\Program Files\Git\usr\bin\getfacl.exe
+Get Help | shell:AppsFolder\Microsoft.GetHelp_8wekyb3d8bbwe!App
+Get Started | shell:AppsFolder\MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WebExperienceHost
 GetHelp | C:\Program Files\WindowsApps\Microsoft.GetHelp_10.2409.42162.0_x64__8wekyb3d8bbwe\GetHelp.exe
-getopt | C:\Program Files\Git\usr\bin\getopt.exe
 getprocaddr32 | C:\Program Files\Git\usr\libexec\getprocaddr32.exe
 getprocaddr64 | C:\Program Files\Git\usr\libexec\getprocaddr64.exe
-gettext | C:\Program Files\Git\mingw64\bin\gettext.exe
-Git - [ | C:\Program Files\Git\usr\bin\[.exe
-Git - awk | C:\Program Files\Git\usr\bin\awk.exe
-Git - cat | C:\Program Files\Git\usr\bin\cat.exe
-Git - cmp | C:\Program Files\Git\usr\bin\cmp.exe
-Git - cp | C:\Program Files\Git\usr\bin\cp.exe
-Git - cut | C:\Program Files\Git\usr\bin\cut.exe
-Git - d2u | C:\Program Files\Git\usr\bin\d2u.exe
-Git - dd | C:\Program Files\Git\usr\bin\dd.exe
-Git - df | C:\Program Files\Git\usr\bin\df.exe
-Git - dir | C:\Program Files\Git\usr\bin\dir.exe
-Git - du | C:\Program Files\Git\usr\bin\du.exe
-Git - env | C:\Program Files\Git\usr\bin\env.exe
-Git - ex | C:\Program Files\Git\usr\bin\ex.exe
-Git - fmt | C:\Program Files\Git\usr\bin\fmt.exe
-Git - git | C:\Program Files\Git\mingw64\bin\git.exe
-Git - gpg | C:\Program Files\Git\usr\bin\gpg.exe
-Git - id | C:\Program Files\Git\usr\bin\id.exe
-Git - ldd | C:\Program Files\Git\usr\bin\ldd.exe
-Git - ldh | C:\Program Files\Git\usr\bin\ldh.exe
-Git - ln | C:\Program Files\Git\usr\bin\ln.exe
-Git - ls | C:\Program Files\Git\usr\bin\ls.exe
-Git - mv | C:\Program Files\Git\usr\bin\mv.exe
-Git - nl | C:\Program Files\Git\usr\bin\nl.exe
-Git - od | C:\Program Files\Git\usr\bin\od.exe
-Git - pr | C:\Program Files\Git\usr\bin\pr.exe
-Git - ps | C:\Program Files\Git\usr\bin\ps.exe
-Git - psl | C:\Program Files\Git\usr\bin\psl.exe
-Git - ptx | C:\Program Files\Git\usr\bin\ptx.exe
-Git - pwd | C:\Program Files\Git\usr\bin\pwd.exe
-Git - rm | C:\Program Files\Git\usr\bin\rm.exe
-Git - scp | C:\Program Files\Git\usr\bin\scp.exe
-Git - sed | C:\Program Files\Git\usr\bin\sed.exe
-Git - seq | C:\Program Files\Git\usr\bin\seq.exe
-Git - sh | C:\Program Files\Git\usr\bin\sh.exe
-Git - ssh | C:\Program Files\Git\usr\bin\ssh.exe
-Git - ssp | C:\Program Files\Git\usr\bin\ssp.exe
-Git - sum | C:\Program Files\Git\usr\bin\sum.exe
-Git - tac | C:\Program Files\Git\usr\bin\tac.exe
-Git - tar | C:\Program Files\Git\usr\bin\tar.exe
-Git - tee | C:\Program Files\Git\usr\bin\tee.exe
-Git - tic | C:\Program Files\Git\usr\bin\tic.exe
-Git - tig | C:\Program Files\Git\usr\bin\tig.exe
-Git - toe | C:\Program Files\Git\usr\bin\toe.exe
-Git - tr | C:\Program Files\Git\usr\bin\tr.exe
-Git - tty | C:\Program Files\Git\usr\bin\tty.exe
-Git - u2d | C:\Program Files\Git\usr\bin\u2d.exe
-Git - vim | C:\Program Files\Git\usr\bin\vim.exe
-Git - wc | C:\Program Files\Git\usr\bin\wc.exe
-Git - who | C:\Program Files\Git\usr\bin\who.exe
-Git - xxd | C:\Program Files\Git\usr\bin\xxd.exe
-Git - xz | C:\Program Files\Git\mingw64\bin\xz.exe
-Git - yes | C:\Program Files\Git\usr\bin\yes.exe
+Git - git | C:\Program Files\Git\cmd\git.exe
+Git - sh | C:\Program Files\Git\bin\sh.exe
+Git - tig | C:\Program Files\Git\cmd\tig.exe
 Git Bash | C:\Program Files\Git\git-bash.exe
 Git CMD | C:\Program Files\Git\git-cmd.exe
 Git GUI | C:\Program Files\Git\cmd\git-gui.exe
 Git-2.55.0.3-64-bit | C:\Users\Rohan\Downloads\Git-2.55.0.3-64-bit.exe
-git-askpass | C:\Program Files\Git\mingw64\bin\git-askpass.exe
-git-askyesno | C:\Program Files\Git\mingw64\bin\git-askyesno.exe
-git-credential-helper-selector | C:\Program Files\Git\mingw64\bin\git-credential-helper-selector.exe
-git-credential-manager | C:\Program Files\Git\mingw64\bin\git-credential-manager.exe
-git-lfs | C:\Program Files\Git\mingw64\bin\git-lfs.exe
-git-receive-pack | C:\Program Files\Git\mingw64\bin\git-receive-pack.exe
-git-upload-archive | C:\Program Files\Git\mingw64\bin\git-upload-archive.exe
-git-upload-pack | C:\Program Files\Git\mingw64\bin\git-upload-pack.exe
+git-lfs | C:\Program Files\Git\cmd\git-lfs.exe
+git-receive-pack | C:\Program Files\Git\cmd\git-receive-pack.exe
+git-upload-pack | C:\Program Files\Git\cmd\git-upload-pack.exe
 GitHub Desktop | C:\Users\Rohan\AppData\Local\GitHubDesktop\GitHubDesktop.exe
 GitHubDesktop | C:\Users\Rohan\AppData\Local\GitHubDesktop\app-3.6.4\GitHubDesktop.exe
 GitHubDesktopSetup-x64 | C:\Users\Rohan\Downloads\GitHubDesktopSetup-x64.exe
 gitk | C:\Program Files\Git\cmd\gitk.exe
-gkill | C:\Program Files\Git\usr\bin\gkill.exe
 gldriverquery | C:\Program Files (x86)\Steam\bin\gldriverquery.exe
 gldriverquery64 | C:\Program Files (x86)\Steam\bin\gldriverquery64.exe
-gmondump | C:\Program Files\Git\usr\bin\gmondump.exe
 Google Chrome | C:\Program Files\Google\Chrome\Application\chrome.exe
 GoogleUpdate | C:\Program Files (x86)\Google\Update\GoogleUpdate.exe
-gpg-agent | C:\Program Files\Git\usr\bin\gpg-agent.exe
-gpg-card | C:\Program Files\Git\usr\bin\gpg-card.exe
-gpg-connect-agent | C:\Program Files\Git\usr\bin\gpg-connect-agent.exe
-gpg-error | C:\Program Files\Git\usr\bin\gpg-error.exe
-gpg-mail-tube | C:\Program Files\Git\usr\bin\gpg-mail-tube.exe
-gpg-wks-client | C:\Program Files\Git\usr\bin\gpg-wks-client.exe
-gpg-wks-server | C:\Program Files\Git\usr\bin\gpg-wks-server.exe
-gpgconf | C:\Program Files\Git\usr\bin\gpgconf.exe
-gpgparsemail | C:\Program Files\Git\usr\bin\gpgparsemail.exe
-gpgscm | C:\Program Files\Git\usr\bin\gpgscm.exe
-gpgsm | C:\Program Files\Git\usr\bin\gpgsm.exe
-gpgsplit | C:\Program Files\Git\usr\bin\gpgsplit.exe
-gpgtar | C:\Program Files\Git\usr\bin\gpgtar.exe
-gpgv | C:\Program Files\Git\usr\bin\gpgv.exe
-grep | C:\Program Files\Git\usr\bin\grep.exe
-groups | C:\Program Files\Git\usr\bin\groups.exe
 guidgen | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\guidgen.exe
-gzip | C:\Program Files\Git\usr\bin\gzip.exe
 Hardware & Driver Wizard | C:\Windows\System32\hdwwiz.cpl
-head | C:\Program Files\Git\usr\bin\head.exe
-hmac256 | C:\Program Files\Git\usr\bin\hmac256.exe
-hostid | C:\Program Files\Git\usr\bin\hostid.exe
-hostname | C:\Program Files\Git\usr\bin\hostname.exe
-iconv | C:\Program Files\Git\usr\bin\iconv.exe
+hardwareupdater | C:\Program Files (x86)\Steam\bin\hardwareupdater\hardwareupdater.exe
+identity helper | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\identity_helper.exe
 IDLE (Python 3.14 64-bit) | C:\Python314\pythonw.exe
 IDLE (Python 3.14) | C:\Users\Rohan\AppData\Local\Python\pythoncore-3.14-64\pythonw.exe
 IEDIAG | C:\Program Files\Internet Explorer\IEDIAGCMD.EXE
@@ -243,146 +138,130 @@ ielowutil | C:\Program Files (x86)\Internet Explorer\ielowutil.exe
 IEXPLORE | C:\Program Files\Internet Explorer\IEXPLORE.EXE
 iexplore | C:\Program Files (x86)\Internet Explorer\iexplore.exe
 ImagingDevices | C:\Program Files (x86)\Windows Photo Viewer\ImagingDevices.exe
-infocmp | C:\Program Files\Git\usr\bin\infocmp.exe
-infotocap | C:\Program Files\Git\usr\bin\infotocap.exe
 inno updater | C:\Users\Rohan\AppData\Local\Programs\Microsoft VS Code\e4c7e7b1d6\tools\inno_updater.exe
-install | C:\Program Files\Git\usr\bin\install.exe
+Instagram | shell:AppsFolder\Facebook.InstagramBeta_8xx8rvfyw5nnt!App
 Install Additional Tools for Node.js | C:\Windows\System32\cmd.exe
 InstallCleanup | C:\Program Files (x86)\Microsoft Visual Studio\Installer\InstallCleanup.exe
+Intel� Graphics Command Center | shell:AppsFolder\AppUp.IntelGraphicsExperience_8j3eq9eme6ctt!App
 iSCSI Initiator | C:\WINDOWS\system32\iscsicpl.exe
-join | C:\Program Files\Git\usr\bin\join.exe
-kbxutil | C:\Program Files\Git\usr\bin\kbxutil.exe
-kill | C:\Program Files\Git\usr\bin\kill.exe
 language server | C:\Users\Rohan\AppData\Local\Programs\antigravity\resources\bin\language_server.exe
-less | C:\Program Files\Git\usr\bin\less.exe
 lessecho | C:\Program Files\Git\usr\libexec\lessecho.exe
-lesskey | C:\Program Files\Git\usr\bin\lesskey.exe
 licensemanagershellext | C:\WINDOWS\System32\licensemanagershellext.exe
-link | C:\Program Files\Git\usr\bin\link.exe
+Live captions | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\LiveCaptions.exe
 LiveCaptions | C:\WINDOWS\system32\LiveCaptions.exe
 llama-quantize | C:\Users\Rohan\AppData\Local\Programs\Ollama\lib\ollama\llama-quantize.exe
 llama-server | C:\Users\Rohan\AppData\Local\Programs\Ollama\lib\ollama\llama-server.exe
-locale | C:\Program Files\Git\usr\bin\locale.exe
-locate | C:\Program Files\Git\usr\bin\locate.exe
-logname | C:\Program Files\Git\usr\bin\logname.exe
+Local Security Policy | shell:AppsFolder\Microsoft.AutoGenerated.{BD3F924E-55FB-A1BA-9DE6-B50F9F2460AC}
 LogTransport2 | C:\Program Files\Adobe\Acrobat DC\Acrobat\LogTransport2.exe
-lsattr | C:\Program Files\Git\usr\bin\lsattr.exe
-lzmadec | C:\Program Files\Git\mingw64\bin\lzmadec.exe
-lzmainfo | C:\Program Files\Git\mingw64\bin\lzmainfo.exe
-mac2unix | C:\Program Files\Git\usr\bin\mac2unix.exe
+Magnifier | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\magnify.exe
 Magnify | C:\WINDOWS\system32\magnify.exe
+makeappx | C:\Program Files (x86)\Windows Kits\10\App Certification Kit\makeappx.exe
 makehm | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\Tools\makehm.exe
-md5sum | C:\Program Files\Git\usr\bin\md5sum.exe
+Media Player | shell:AppsFolder\Microsoft.ZuneMusic_8wekyb3d8bbwe!Microsoft.ZuneMusic
 Memory Diagnostics Tool | C:\WINDOWS\system32\MdSched.exe
+Microsoft 365 Copilot | shell:AppsFolder\Microsoft.MicrosoftOfficeHub_8wekyb3d8bbwe!Microsoft.MicrosoftOfficeHub
+Microsoft Clipchamp | shell:AppsFolder\Clipchamp.Clipchamp_yxz26nhyzhsrt!App
 Microsoft Edge | C:\Program Files (x86)\Microsoft\Edge\Application\152.0.4191.62\msedge.exe
-Microsoft Edge WebView2 Runtime | C:\Program Files (x86)\Microsoft\EdgeWebView\Application\152.0.4191.62\msedgewebview2.exe
+Microsoft Edge WebView2 Runtime | C:\Program Files (x86)\Microsoft\EdgeWebView\Application\152.0.4191.66\msedgewebview2.exe
 Microsoft OneDrive | C:\Users\Rohan\AppData\Local\Microsoft\OneDrive\26.153.0809.0004\OneDriveSetup.exe
+Microsoft Store | shell:AppsFolder\Microsoft.WindowsStore_8wekyb3d8bbwe!App
+Microsoft Teams | shell:AppsFolder\MSTeams_8wekyb3d8bbwe!MSTeams
+Microsoft To Do | shell:AppsFolder\Microsoft.Todos_8wekyb3d8bbwe!App
+Microsoft.VisualStudio.GitHubProtocolHandler | C:\Program Files (x86)\Microsoft Visual Studio\Shared\GitHubProtocolHandler\Microsoft.VisualStudio.GitHubProtocolHandler.exe
 Microsoft.VisualStudio.Setup.ToastNotification | C:\Program Files (x86)\Microsoft Visual Studio\Installer\Microsoft.VisualStudio.Setup.ToastNotification.exe
-MicrosoftEdgeUpdate | C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe
-minidumper | C:\Program Files\Git\usr\bin\minidumper.exe
-mintty | C:\Program Files\Git\usr\bin\mintty.exe
+Microsoft.VisualStudio.VsWebProtocolSelector | C:\Program Files (x86)\Microsoft Visual Studio\Shared\VsWebProtocolSelector\Microsoft.VisualStudio.VsWebProtocolSelector.exe
+microsoft.windows.softwarelogo.appxlauncher | C:\Program Files (x86)\Windows Kits\10\App Certification Kit\microsoft.windows.softwarelogo.appxlauncher.exe
+microsoft.windows.softwarelogo.taskengine | C:\Program Files (x86)\Windows Kits\10\App Certification Kit\microsoft.windows.softwarelogo.taskengine.exe
+Microsoft Edge | C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+MicrosoftEdgeComRegisterShellARM64 | C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.265.7\MicrosoftEdgeComRegisterShellARM64.exe
+MicrosoftEdgeUpdate | C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.265.7\MicrosoftEdgeUpdate.exe
+MicrosoftEdgeUpdateBroker | C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.265.7\MicrosoftEdgeUpdateBroker.exe
+MicrosoftEdgeUpdateComRegisterShell64 | C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.265.7\MicrosoftEdgeUpdateComRegisterShell64.exe
+MicrosoftEdgeUpdateCore | C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.265.7\MicrosoftEdgeUpdateCore.exe
+MicrosoftEdgeUpdateOnDemand | C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.265.7\MicrosoftEdgeUpdateOnDemand.exe
+MicrosoftEdgeUpdateSetup | C:\Program Files (x86)\Microsoft\EdgeUpdate\1.3.265.7\MicrosoftEdgeUpdateSetup.exe
 MipDlp | C:\Program Files\Windows Defender\MipDlp.exe
-mkdir | C:\Program Files\Git\usr\bin\mkdir.exe
-mkfifo | C:\Program Files\Git\usr\bin\mkfifo.exe
-mkgroup | C:\Program Files\Git\usr\bin\mkgroup.exe
-mknod | C:\Program Files\Git\usr\bin\mknod.exe
-mkpasswd | C:\Program Files\Git\usr\bin\mkpasswd.exe
-mktemp | C:\Program Files\Git\usr\bin\mktemp.exe
-mount | C:\Program Files\Git\usr\bin\mount.exe
 MpCmdRun | C:\Program Files (x86)\Windows Defender\MpCmdRun.exe
 MpCopyAccelerator | C:\Program Files\Windows Defender\MpCopyAccelerator.exe
 MpDefenderCoreService | C:\Program Files\Windows Defender\MpDefenderCoreService.exe
 MpDlpCmd | C:\Program Files\Windows Defender\MpDlpCmd.exe
 MpDlpService | C:\Program Files\Windows Defender\MpDlpService.exe
 mpextms | C:\Program Files\Windows Defender\mpextms.exe
-mpicalc | C:\Program Files\Git\usr\bin\mpicalc.exe
 ms-teams | C:\Program Files\WindowsApps\msteams_25163.3611.3774.6315_x64__8wekyb3d8bbwe\ms-teams.exe
 ms-teamsupdate | C:\Program Files\WindowsApps\msteams_25163.3611.3774.6315_x64__8wekyb3d8bbwe\ms-teamsupdate.exe
+mscopilot | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\mscopilot.exe
+mscopilot proxy | C:\Program Files (x86)\Microsoft\Copilot\Application\mscopilot_proxy.exe
+msedge | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\msedge.exe
+msedge - Copy | C:\Program Files (x86)\Microsoft\Edge\Application\msedge - Copy.exe
+msedge proxy | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\msedge_proxy.exe
+msedge pwa launcher | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\msedge_pwa_launcher.exe
+msedgewebview2 | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\msedgewebview2.exe
+msinfo32 | C:\Program Files (x86)\Common Files\Microsoft Shared\MSInfo\msinfo32.exe
 MsMpEng | C:\Program Files\Windows Defender\MsMpEng.exe
 mspaint | C:\Program Files\WindowsApps\Microsoft.Paint_11.2605.81.0_x64__8wekyb3d8bbwe\PaintApp\mspaint.exe
 mspdbsrv | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\mspdbsrv.exe
 MsSense | C:\Program Files\Windows Defender Advanced Threat Protection\MsSense.exe
-nano | C:\Program Files\Git\usr\bin\nano.exe
+MyASUS | shell:AppsFolder\B9ECED6F.ASUSPCAssistant_qmba6cd70vzyy!App
 Narrator | C:\WINDOWS\system32\narrator.exe
-nettle-hash | C:\Program Files\Git\usr\bin\nettle-hash.exe
-nettle-lfib-stream | C:\Program Files\Git\usr\bin\nettle-lfib-stream.exe
-nettle-pbkdf2 | C:\Program Files\Git\usr\bin\nettle-pbkdf2.exe
 Network Connections | C:\Windows\System32\ncpa.cpl
+new Code | C:\Users\Rohan\AppData\Local\Programs\Microsoft VS Code\new_Code.exe
 new code-tunnel | C:\Users\Rohan\AppData\Local\Programs\Microsoft VS Code\bin\new_code-tunnel.exe
-newgrp | C:\Program Files\Git\usr\bin\newgrp.exe
-nice | C:\Program Files\Git\usr\bin\nice.exe
+News | shell:AppsFolder\Microsoft.BingNews_8wekyb3d8bbwe!AppexNews
 NisSrv | C:\Program Files\Windows Defender\NisSrv.exe
 Node.js | C:\Program Files\nodejs\node.exe
-nohup | C:\Program Files\Git\usr\bin\nohup.exe
-notepad | C:\Program Files\WindowsApps\Microsoft.WindowsNotepad_11.2607.14.0_x64__8wekyb3d8bbwe\Notepad\Notepad.exe
+Node.js command prompt | shell:AppsFolder\Microsoft.AutoGenerated.{499EE7CA-7ED5-EBC9-AB09-80DC143D7B90}
 Notepad | C:\Windows\System32\notepad.exe
+notepad | C:\Program Files\WindowsApps\Microsoft.WindowsNotepad_11.2607.14.0_x64__8wekyb3d8bbwe\Notepad\Notepad.exe
 Notion | C:\Users\Rohan\AppData\Local\Programs\Notion\Notion.exe
 Notion Setup 7.28.0 | C:\Users\Rohan\Downloads\Notion Setup 7.28.0.exe
-nproc | C:\Program Files\Git\usr\bin\nproc.exe
-numfmt | C:\Program Files\Git\usr\bin\numfmt.exe
+NVIDIA Control Panel | shell:AppsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel
 Obsidian-1.13.4 | C:\Users\Rohan\Downloads\Obsidian-1.13.4.exe
 ODBC Data Sources (32-bit) | C:\WINDOWS\syswow64\odbcad32.exe
 ODBC Data Sources (64-bit) | C:\WINDOWS\system32\odbcad32.exe
-odt2txt | C:\Program Files\Git\mingw64\bin\odt2txt.exe
 OfflineScannerShell | C:\Program Files\Windows Defender\Offline\OfflineScannerShell.exe
 olk | C:\Program Files\WindowsApps\microsoft.outlookforwindows_1.2025.1111.100_x64__8wekyb3d8bbwe\olk.exe
 Ollama | C:\Users\Rohan\AppData\Local\Programs\Ollama\ollama app.exe
 ollama | C:\Users\Rohan\AppData\Local\Programs\Ollama\ollama.exe
 On-Screen Keyboard | C:\WINDOWS\system32\osk.exe
 OneDrive | C:\Users\Rohan\AppData\Local\Microsoft\OneDrive\OneDrive.exe
-openssl | C:\Program Files\Git\usr\bin\openssl.exe
 OperaGXSetup | C:\Users\Rohan\Downloads\OperaGXSetup.exe
-p11-kit | C:\Program Files\Git\usr\bin\p11-kit.exe
+Outlook | shell:AppsFolder\Microsoft.OutlookForWindows_8wekyb3d8bbwe!Microsoft.OutlookforWindows
 PAD.BrowserNativeMessageHost | C:\Program Files\WindowsApps\Microsoft.PowerAutomateDesktop_11.2608.115.0_x64__8wekyb3d8bbwe\dotnet\PAD.BrowserNativeMessageHost.exe
 PAD.ChildSession.Service.Host | C:\Program Files\WindowsApps\Microsoft.PowerAutomateDesktop_11.2608.115.0_x64__8wekyb3d8bbwe\dotnet\PAD.ChildSession.Service.Host.exe
-passwd | C:\Program Files\Git\usr\bin\passwd.exe
-paste | C:\Program Files\Git\usr\bin\paste.exe
-patch | C:\Program Files\Git\usr\bin\patch.exe
-pathchk | C:\Program Files\Git\usr\bin\pathchk.exe
-pdftotext | C:\Program Files\Git\mingw64\bin\pdftotext.exe
+Paint | shell:AppsFolder\Microsoft.Paint_8wekyb3d8bbwe!App
 Performance Monitor | C:\WINDOWS\system32\perfmon.msc
-perl | C:\Program Files\Git\usr\bin\perl.exe
-perl5.42.2 | C:\Program Files\Git\usr\bin\perl5.42.2.exe
-pinentry | C:\Program Files\Git\usr\bin\pinentry.exe
-pinentry-w32 | C:\Program Files\Git\usr\bin\pinentry-w32.exe
-pinky | C:\Program Files\Git\usr\bin\pinky.exe
-pkcs1-conv | C:\Program Files\Git\usr\bin\pkcs1-conv.exe
-pldd | C:\Program Files\Git\usr\bin\pldd.exe
-pluginviewer | C:\Program Files\Git\usr\bin\pluginviewer.exe
+Phone Link | shell:AppsFolder\Microsoft.YourPhone_8wekyb3d8bbwe!App
+Photos | shell:AppsFolder\Microsoft.Windows.Photos_8wekyb3d8bbwe!App
+pipanel | C:\Program Files (x86)\Common Files\Microsoft Shared\ink\pipanel.exe
+platform experiences helper | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\platform_experiences_helper.exe
+Power Automate | shell:AppsFolder\Microsoft.PowerAutomateDesktop_8wekyb3d8bbwe!PAD.Console
+Power Automate Troubleshooter | shell:AppsFolder\Microsoft.PowerAutomateDesktop_8wekyb3d8bbwe!PAD.Troubleshooter
 PreVerCheck | C:\Program Files (x86)\Splashtop\Splashtop Wired XDisplay\Agent\PreVerCheck.exe
 Print Management | C:\WINDOWS\system32\printmanagement.msc
-printenv | C:\Program Files\Git\usr\bin\printenv.exe
-printf | C:\Program Files\Git\usr\bin\printf.exe
-printf gettext | C:\Program Files\Git\mingw64\bin\printf_gettext.exe
-printf ngettext | C:\Program Files\Git\mingw64\bin\printf_ngettext.exe
-profiler | C:\Program Files\Git\usr\bin\profiler.exe
-proxy-lookup | C:\Program Files\Git\mingw64\bin\proxy-lookup.exe
+pwahelper | C:\Program Files (x86)\Microsoft\EdgeCore\Optimized\pwahelper.exe
 py | C:\Program Files\WindowsApps\PythonSoftwareFoundation.PythonManager_26.3.240.0_x64__3847v3x7pw1km\py.exe
-PyDoc (Python 3.14) | C:\Users\Rohan\AppData\Local\Python\pythoncore-3.14-64\python.exe
+PyDoc (Python 3.14) | shell:AppsFolder\Microsoft.AutoGenerated.{669E6171-CE45-7D8E-9A7A-E5C8485D6302}
 pymanager | C:\Program Files\WindowsApps\PythonSoftwareFoundation.PythonManager_26.3.240.0_x64__3847v3x7pw1km\pymanager.exe
 python | C:\Program Files\WindowsApps\PythonSoftwareFoundation.PythonManager_26.3.240.0_x64__3847v3x7pw1km\python.exe
+Python 3.14 | C:\Users\Rohan\AppData\Local\Python\pythoncore-3.14-64\python.exe
 Python 3.14 (64-bit) | C:\Python314\python.exe
-Python 3.14.7 (64-bit) | C:\Users\Rohan\AppData\Local\Package Cache\{97b6de30-6082-48d1-9bb4-9f43296531a4}\python-3.14.7-amd64.exe
+Python 3.14 Module Docs (64-bit) | shell:AppsFolder\Microsoft.AutoGenerated.{2AD88A19-430D-1BB6-5461-9708F456DF10}
+Python install manager | shell:AppsFolder\PythonSoftwareFoundation.PythonManager_3847v3x7pw1km!Py.Manager.Exe
 python3 | C:\Program Files\WindowsApps\PythonSoftwareFoundation.PythonManager_26.3.240.0_x64__3847v3x7pw1km\python3.exe
 pythonw | C:\Program Files\WindowsApps\PythonSoftwareFoundation.PythonManager_26.3.240.0_x64__3847v3x7pw1km\pythonw.exe
 pyw | C:\Program Files\WindowsApps\PythonSoftwareFoundation.PythonManager_26.3.240.0_x64__3847v3x7pw1km\pyw.exe
 pywmanager | C:\Program Files\WindowsApps\PythonSoftwareFoundation.PythonManager_26.3.240.0_x64__3847v3x7pw1km\pywmanager.exe
-readlink | C:\Program Files\Git\usr\bin\readlink.exe
-realpath | C:\Program Files\Git\usr\bin\realpath.exe
-rebase | C:\Program Files\Git\usr\bin\rebase.exe
+Quick Assist | shell:AppsFolder\MicrosoftCorporationII.QuickAssist_8wekyb3d8bbwe!App
+Realtek Audio Console | shell:AppsFolder\RealtekSemiconductorCorp.RealtekAudioControl_dt26b99r8h8gj!App
+Recovery Drive | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\RecoveryDrive.exe
 RecoveryDrive | C:\WINDOWS\system32\RecoveryDrive.exe
 Registry Editor | C:\WINDOWS\regedit.exe
-regtool | C:\Program Files\Git\usr\bin\regtool.exe
+Release Notes | shell:AppsFolder\{6D809377-6AF0-444B-8957-A3773F02200E}\VideoLAN\VLC\NEWS.txt
 Remote Desktop Connection | C:\WINDOWS\system32\mstsc.exe
-reset | C:\Program Files\Git\usr\bin\reset.exe
 Resource Monitor | C:\Windows\System32\resmon.exe
-rmdir | C:\Program Files\Git\usr\bin\rmdir.exe
-rnano | C:\Program Files\Git\usr\bin\rnano.exe
-runcon | C:\Program Files\Git\usr\bin\runcon.exe
-rview | C:\Program Files\Git\usr\bin\rview.exe
-rvim | C:\Program Files\Git\usr\bin\rvim.exe
-scalar | C:\Program Files\Git\mingw64\bin\scalar.exe
-sdiff | C:\Program Files\Git\usr\bin\sdiff.exe
+rmlogotest | C:\Program Files (x86)\Windows Kits\10\App Certification Kit\rmlogotest.exe
+Run | shell:AppsFolder\Microsoft.Windows.Shell.RunDialog
+scalar | C:\Program Files\Git\cmd\scalar.exe
 secure desktop capture | C:\Program Files (x86)\Steam\bin\secure_desktop_capture.exe
 Security Configuration Management | C:\WINDOWS\system32\secpol.msc
 SenseAP | C:\Program Files\Windows Defender Advanced Threat Protection\SenseAP.exe
@@ -400,44 +279,30 @@ SenseNdr | C:\Program Files\Windows Defender Advanced Threat Protection\SenseNdr
 SenseSampleUploader | C:\Program Files\Windows Defender Advanced Threat Protection\SenseSampleUploader.exe
 SenseTracer | C:\Program Files\Windows Defender Advanced Threat Protection\SenseTracer.exe
 SenseTVM | C:\Program Files\Windows Defender Advanced Threat Protection\SenseTVM.exe
+Services | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\services.msc
 services | C:\WINDOWS\system32\services.msc
-setfacl | C:\Program Files\Git\usr\bin\setfacl.exe
-setmetamode | C:\Program Files\Git\usr\bin\setmetamode.exe
+Settings | shell:AppsFolder\windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel
 setup wm | C:\Program Files (x86)\Windows Media Player\setup_wm.exe
-sexp-conv | C:\Program Files\Git\usr\bin\sexp-conv.exe
-sftp | C:\Program Files\Git\usr\bin\sftp.exe
-sha1sum | C:\Program Files\Git\usr\bin\sha1sum.exe
-sha224sum | C:\Program Files\Git\usr\bin\sha224sum.exe
-sha256sum | C:\Program Files\Git\usr\bin\sha256sum.exe
-sha384sum | C:\Program Files\Git\usr\bin\sha384sum.exe
-sha512sum | C:\Program Files\Git\usr\bin\sha512sum.exe
 ShellMcpServers.Packaging | C:\WINDOWS\SystemApps\MicrosoftWindows.Client.Core_cw5n1h2txyewy\ShellMcpServers.Packaging.exe
 ShowAppPickerForPDF | C:\Program Files\Adobe\Acrobat DC\Acrobat\ShowAppPickerForPDF.exe
-shred | C:\Program Files\Git\usr\bin\shred.exe
-shuf | C:\Program Files\Git\usr\bin\shuf.exe
+signtool | C:\Program Files (x86)\Windows Kits\10\App Certification Kit\signtool.exe
 SingleClientServicesUpdater | C:\Program Files\Adobe\Acrobat DC\Acrobat\AcroCEF\SingleClientServicesUpdater.exe
-sleep | C:\Program Files\Git\usr\bin\sleep.exe
+Snipping Tool | shell:AppsFolder\Microsoft.ScreenSketch_8wekyb3d8bbwe!App
 SnippingTool | C:\Program Files\WindowsApps\Microsoft.ScreenSketch_11.2605.38.0_x64__8wekyb3d8bbwe\SnippingTool\SnippingTool.exe
-sort | C:\Program Files\Git\usr\bin\sort.exe
+Solitaire & Casual Games | shell:AppsFolder\Microsoft.MicrosoftSolitaireCollection_8wekyb3d8bbwe!App
 Sound Device Manager | C:\Windows\System32\mmsys.cpl
+Sound Recorder | shell:AppsFolder\Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe!App
 Splashtop Software Updater | C:\Program Files (x86)\Splashtop\Splashtop Software Updater\SSUAgent.exe
 Splashtop Wired XDisplay Agent | C:\Program Files (x86)\Splashtop\Splashtop Wired XDisplay\Agent\SWXDAgent.exe
 Splashtop Wired XDisplay Agent - adb | C:\Program Files (x86)\Splashtop\Splashtop Wired XDisplay\Agent\adb.exe
 Splashtop Wired XDisplay Agent v1.5.8.3 | C:\Users\Rohan\Downloads\Splashtop_Wired_XDisplay_Agent_v1.5.8.3.exe
-split | C:\Program Files\Git\usr\bin\split.exe
+Spotify | shell:AppsFolder\SpotifyAB.SpotifyMusic_zpdnekdrzrea0!Spotify
 spotify cli | C:\Program Files\WindowsApps\SpotifyAB.SpotifyMusic_1.298.301.0_x64__zpdnekdrzrea0\spotify_cli.exe
 squirrel | C:\Users\Rohan\AppData\Local\GitHubDesktop\app-3.6.4\squirrel.exe
 SRMergeFile | C:\Program Files (x86)\Splashtop\Splashtop Wired XDisplay\Agent\SRMergeFile.exe
 SRUnPackFile | C:\Program Files (x86)\Splashtop\Splashtop Wired XDisplay\Agent\SRUnPackFile.exe
 SRUpdate | C:\Program Files (x86)\Splashtop\Splashtop Wired XDisplay\Agent\SRUpdate.exe
-ssh-add | C:\Program Files\Git\usr\bin\ssh-add.exe
-ssh-agent | C:\Program Files\Git\usr\bin\ssh-agent.exe
-ssh-keygen | C:\Program Files\Git\usr\bin\ssh-keygen.exe
-ssh-keyscan | C:\Program Files\Git\usr\bin\ssh-keyscan.exe
-ssh-pageant | C:\Program Files\Git\usr\bin\ssh-pageant.exe
 SSUService | C:\Program Files (x86)\Splashtop\Splashtop Software Updater\SSUService.exe
-stat | C:\Program Files\Git\usr\bin\stat.exe
-stdbuf | C:\Program Files\Git\usr\bin\stdbuf.exe
 Steam | C:\Program Files (x86)\Steam\Steam.exe
 steam monitor | C:\Program Files (x86)\Steam\bin\steam_monitor.exe
 steamerrorreporter | C:\Program Files (x86)\Steam\steamerrorreporter.exe
@@ -450,58 +315,37 @@ steamsysinfo | C:\Program Files (x86)\Steam\steamsysinfo.exe
 steamxboxutil | C:\Program Files (x86)\Steam\bin\steamxboxutil.exe
 steamxboxutil64 | C:\Program Files (x86)\Steam\bin\steamxboxutil64.exe
 Steps Recorder | C:\WINDOWS\system32\psr.exe
-store | C:\Program Files\WindowsApps\Microsoft.WindowsStore_22607.1401.7.0_x64__8wekyb3d8bbwe\store.exe
-strace | C:\Program Files\Git\usr\bin\strace.exe
+Sticky Notes | shell:AppsFolder\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe!App
+store | C:\Program Files\WindowsApps\Microsoft.WindowsStore_22607.1401.8.0_x64__8wekyb3d8bbwe\store.exe
 streaming client | C:\Program Files (x86)\Steam\streaming_client.exe
-stty | C:\Program Files\Git\usr\bin\stty.exe
 symsrvhost | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\symsrvhost.exe
-sync | C:\Program Files\Git\usr\bin\sync.exe
 System Configuration | C:\WINDOWS\system32\msconfig.exe
 System Information | C:\WINDOWS\system32\msinfo32.exe
 T4VSHostProcess | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\T4VSHostProcess.exe
-tabs | C:\Program Files\Git\usr\bin\tabs.exe
 TabTip | C:\Program Files\Common Files\microsoft shared\ink\TabTip.exe
-tail | C:\Program Files\Git\usr\bin\tail.exe
+TabTip32 | C:\Program Files (x86)\Common Files\Microsoft Shared\ink\TabTip32.exe
 Task Manager | C:\WINDOWS\system32\taskmgr.exe
 Task Scheduler | C:\WINDOWS\system32\taskschd.msc
-tclsh | C:\Program Files\Git\mingw64\bin\tclsh.exe
-tclsh86 | C:\Program Files\Git\mingw64\bin\tclsh86.exe
-test | C:\Program Files\Git\usr\bin\test.exe
+Telegram Desktop | shell:AppsFolder\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm!Telegram.TelegramDesktop.Store
+Terminal | shell:AppsFolder\Microsoft.WindowsTerminal_8wekyb3d8bbwe!App
 TextTransform | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\TextTransform.exe
 TextTransformCore | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\TextTransformCore.exe
-timeout | C:\Program Files\Git\usr\bin\timeout.exe
-touch | C:\Program Files\Git\usr\bin\touch.exe
-tput | C:\Program Files\Git\usr\bin\tput.exe
-true | C:\Program Files\Git\usr\bin\true.exe
-truncate | C:\Program Files\Git\usr\bin\truncate.exe
-trust | C:\Program Files\Git\usr\bin\trust.exe
-tset | C:\Program Files\Git\usr\bin\tset.exe
-tsort | C:\Program Files\Git\usr\bin\tsort.exe
-tzset | C:\Program Files\Git\usr\bin\tzset.exe
-umount | C:\Program Files\Git\usr\bin\umount.exe
-uname | C:\Program Files\Git\usr\bin\uname.exe
-unexpand | C:\Program Files\Git\usr\bin\unexpand.exe
 uninst | C:\Program Files (x86)\Splashtop\Splashtop Software Updater\uninst.exe
 Uninstall Antigravity | C:\Users\Rohan\AppData\Local\Programs\antigravity\Uninstall Antigravity.exe
 Uninstall Node.js | C:\Windows\SysWOW64\msiexec.exe
 Uninstall Notion | C:\Users\Rohan\AppData\Local\Programs\Notion\Uninstall Notion.exe
-uniq | C:\Program Files\Git\usr\bin\uniq.exe
-unix2dos | C:\Program Files\Git\usr\bin\unix2dos.exe
-unix2mac | C:\Program Files\Git\usr\bin\unix2mac.exe
-unlink | C:\Program Files\Git\usr\bin\unlink.exe
-unxz | C:\Program Files\Git\mingw64\bin\unxz.exe
-unzip | C:\Program Files\Git\usr\bin\unzip.exe
-unzipsfx | C:\Program Files\Git\usr\bin\unzipsfx.exe
+Update | C:\Users\Rohan\AppData\Local\GitHubDesktop\Update.exe
+updater | C:\Program Files (x86)\Google\GoogleUpdater\152.0.7933.0\updater.exe
 UrbanVPN | C:\Users\Rohan\Downloads\UrbanVPN.exe
-users | C:\Program Files\Git\usr\bin\users.exe
 vcpkg | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\VC\vcpkg\vcpkg.exe
-vdir | C:\Program Files\Git\usr\bin\vdir.exe
-view | C:\Program Files\Git\usr\bin\view.exe
-vimdiff | C:\Program Files\Git\usr\bin\vimdiff.exe
 Visual Studio Build Tools 2026 - vsn | C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\vsn.exe
 Visual Studio Code | C:\Users\Rohan\AppData\Local\Programs\Microsoft VS Code\Code.exe
+Visual Studio Installer | shell:AppsFolder\Microsoft.VisualStudio.Installer
+VLC media player | shell:AppsFolder\{6D809377-6AF0-444B-8957-A3773F02200E}\VideoLAN\VLC\vlc.exe
 VLC media player - reset preferences and cache files | C:\Program Files\VideoLAN\VLC\vlc.exe
+VLC media player skinned | shell:AppsFolder\Microsoft.AutoGenerated.{30BD9A02-CB9A-93FD-A859-09C8803F2346}
 vlc-cache-gen | C:\Program Files\VideoLAN\VLC\vlc-cache-gen.exe
+Voice access | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\voiceaccess.exe
 VoiceAccess | C:\WINDOWS\system32\voiceaccess.exe
 Volume Mixer | C:\Windows\System32\sndvol.exe
 vs installer | C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe
@@ -528,30 +372,26 @@ warp-dex | C:\Program Files\Cloudflare\Cloudflare WARP\warp-dex.exe
 warp-diag | C:\Program Files\Cloudflare\Cloudflare WARP\warp-diag.exe
 warp-svc | C:\Program Files\Cloudflare\Cloudflare WARP\warp-svc.exe
 warp-updater | C:\Program Files\Cloudflare\Cloudflare WARP\warp-updater.exe
-watchgnupg | C:\Program Files\Git\usr\bin\watchgnupg.exe
 WCXInst | C:\Program Files (x86)\Splashtop\Splashtop Software Updater\WCXInst.exe
+Weather | shell:AppsFolder\Microsoft.BingWeather_8wekyb3d8bbwe!App
 webm encoder | C:\Users\Rohan\AppData\Local\Programs\antigravity\resources\bin\webm_encoder.exe
-which | C:\Program Files\Git\usr\bin\which.exe
-whoami | C:\Program Files\Git\usr\bin\whoami.exe
-WhoUses | C:\Program Files\Git\mingw64\bin\WhoUses.exe
+WhatsApp | shell:AppsFolder\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App
 Windows App Cert Kit | C:\Program Files (x86)\Windows Kits\10\App Certification Kit\appcertui.exe
+Windows Back up | shell:AppsFolder\MicrosoftWindows.Client.CBS_cw5n1h2txyewy!WindowsBackup
 Windows Defender Firewall with Advanced Security | C:\WINDOWS\system32\WF.msc
 Windows Mail (wab) | C:\Program Files (x86)\Windows Mail\wab.exe
 Windows Media Player Legacy | C:\Program Files (x86)\Windows Media Player\wmplayer.exe
+Windows Memory Diagnostic | shell:AppsFolder\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\MdSched.exe
 Windows PowerShell | C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Windows PowerShell (x86) | shell:AppsFolder\{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}\WindowsPowerShell\v1.0\powershell.exe
 Windows PowerShell ISE | C:\WINDOWS\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
 Windows PowerShell ISE (x86) | C:\WINDOWS\syswow64\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Windows Security | shell:AppsFolder\Microsoft.SecHealthUI_8wekyb3d8bbwe!SecHealthUI
 Windows Software Development Kit | C:\WINDOWS\explorer.exe
-Windows Software Development Kit - Windows 10.0.26100.8249 | C:\ProgramData\Package Cache\{204d0387-6d9a-48cf-bb7d-93d49ec0141c}\winsdksetup.exe
 Windows Terminal | C:\Users\Rohan\AppData\Local\Microsoft\WindowsApps\wt.exe
+Windows Tools | shell:AppsFolder\Microsoft.Windows.AdministrativeTools
 WindowsPackageManagerServer | C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_1.29.290.0_x64__8wekyb3d8bbwe\WindowsPackageManagerServer.exe
 winget | C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_1.29.290.0_x64__8wekyb3d8bbwe\winget.exe
-winpty | C:\Program Files\Git\usr\bin\winpty.exe
-winpty-agent | C:\Program Files\Git\usr\bin\winpty-agent.exe
-winpty-debugserver | C:\Program Files\Git\usr\bin\winpty-debugserver.exe
-wintoast | C:\Program Files\Git\mingw64\bin\wintoast.exe
-wish | C:\Program Files\Git\mingw64\bin\wish.exe
-wish86 | C:\Program Files\Git\mingw64\bin\wish86.exe
 wmlaunch | C:\Program Files (x86)\Windows Media Player\wmlaunch.exe
 wmpconfig | C:\Program Files (x86)\Windows Media Player\wmpconfig.exe
 wmplayer | C:\Program Files\Windows Media Player\wmplayer.exe
@@ -561,17 +401,15 @@ wmprph | C:\Program Files (x86)\Windows Media Player\wmprph.exe
 wmpshare | C:\Program Files (x86)\Windows Media Player\wmpshare.exe
 WriteMiniDump | C:\Program Files (x86)\Steam\WriteMiniDump.exe
 wt | C:\Program Files\WindowsApps\Microsoft.WindowsTerminal_1.24.11911.0_x64__8wekyb3d8bbwe\wt.exe
+x64 Native Tools Command Prompt for VS | shell:AppsFolder\Microsoft.AutoGenerated.{6921898D-05BF-461D-B4E6-B8E2A808B41E}
+x64 x86 Cross Tools Command Prompt for VS | shell:AppsFolder\Microsoft.AutoGenerated.{B92AB045-948B-BA7F-FF3E-5C1484A1E7A2}
 x64launcher | C:\Program Files (x86)\Steam\bin\x64launcher.exe
+x86 Native Tools Command Prompt for VS | shell:AppsFolder\Microsoft.AutoGenerated.{53C68C1A-51C4-C1B8-62DE-CAB902A40A61}
+x86 x64 Cross Tools Command Prompt for VS | shell:AppsFolder\Microsoft.AutoGenerated.{70C6B808-39B6-1F28-0212-7F45EB21EF97}
 x86launcher | C:\Program Files (x86)\Steam\bin\x86launcher.exe
-xargs | C:\Program Files\Git\usr\bin\xargs.exe
+XBOX | shell:AppsFolder\Microsoft.GamingApp_8wekyb3d8bbwe!Microsoft.Xbox.App
 XboxPcAppAdminServer | C:\Program Files\WindowsApps\Microsoft.GamingApp_2608.1001.17.0_x64__8wekyb3d8bbwe\XboxPcAppAdminServer.exe
 XboxPcAppCE | C:\Program Files\WindowsApps\Microsoft.GamingApp_2608.1001.17.0_x64__8wekyb3d8bbwe\XboxPcAppCE.exe
-xmlwf | C:\Program Files\Git\mingw64\bin\xmlwf.exe
-xzcat | C:\Program Files\Git\mingw64\bin\xzcat.exe
-xzdec | C:\Program Files\Git\mingw64\bin\xzdec.exe
-yat2m | C:\Program Files\Git\usr\bin\yat2m.exe
-YouTube | C:\Users\Rohan\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Chrome Apps\YouTube.lnk
-zipinfo | C:\Program Files\Git\usr\bin\zipinfo.exe
-WhatsApp | shell:AppsFolder\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App
-Telegram | shell:AppsFolder\\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm!Telegram.TelegramDesktop
-Telegram Desktop | shell:AppsFolder\\TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm!Telegram.TelegramDesktop
+YouTube | C:\Program Files\Google\Chrome\Application\chrome_proxy.exe
+Snapchat | C:\Users\Rohan\Desktop\Snapchat.lnk
+Snapchat | C:\Users\Rohan\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Chrome Apps\Snapchat.lnk

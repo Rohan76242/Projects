@@ -89,19 +89,19 @@ class MediaAndIntentTests(unittest.TestCase):
         """Test WhatsApp messaging intent extraction."""
         p1 = parse_direct_intent("send whatsapp message to Rohan hello how are you")
         self.assertIsNotNone(p1)
-        self.assertEqual(p1.actions[0].action, "send_whatsapp")
+        self.assertEqual(p1.actions[0].action, "send_app_message")
         self.assertEqual(p1.actions[0].recipient, "Rohan")
         self.assertEqual(p1.actions[0].message, "hello how are you")
 
         p2 = parse_direct_intent("send msg on whats aap to mom where are you")
         self.assertIsNotNone(p2)
-        self.assertEqual(p2.actions[0].action, "send_whatsapp")
+        self.assertEqual(p2.actions[0].action, "send_app_message")
         self.assertEqual(p2.actions[0].recipient, "mom")
         self.assertEqual(p2.actions[0].message, "where are you")
 
         p3 = parse_direct_intent("text Alex on whatsapp meeting at 5")
         self.assertIsNotNone(p3)
-        self.assertEqual(p3.actions[0].action, "send_whatsapp")
+        self.assertEqual(p3.actions[0].action, "send_app_message")
         self.assertEqual(p3.actions[0].recipient, "Alex")
         self.assertEqual(p3.actions[0].message, "meeting at 5")
 
@@ -188,7 +188,7 @@ class MediaAndIntentTests(unittest.TestCase):
         self.assertEqual(agent.last_active_app, "notepad")
 
         agent.execute_action(PlannedAction(action="type_text", text="hello"))
-        mock_exec.assert_called_with("type_text", text="hello", title="notepad")
+        mock_exec.assert_called_with("type_text", text="hello", title="notepad", press_enter=False)
 
 
 if __name__ == "__main__":

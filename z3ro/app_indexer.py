@@ -8,6 +8,8 @@ import os
 import sys
 import time
 import winreg
+import json
+import subprocess
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Optional
 
@@ -16,6 +18,25 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 APPS_TXT_ROOT = PROJECT_ROOT / "apps.txt"
 APPS_TXT_PKG = PROJECT_ROOT / "z3ro" / "apps.txt"
 
+# Noise / build / internal directory exclusions
+EXCLUDE_DIR_SUBSTRINGS = {
+    r"git\mingw64\bin",
+    r"git\usr\bin",
+    r"node_modules",
+    r"\.venv",
+    r"\venv",
+    r"\site-packages",
+    r"\__pycache__",
+    r"\cache",
+    r"\temp",
+    r"\tmp",
+    r"winsxs",
+    r"assembly",
+    r"servicing",
+    r"package cache",
+    r"\obj",
+}
+
 # Common noise files to exclude from primary app indexing
 EXCLUDE_FILENAMES = {
     "unins000.exe",
@@ -23,15 +44,14 @@ EXCLUDE_FILENAMES = {
     "uninstaller.exe",
     "crashpad_handler.exe",
     "notification_helper.exe",
-    "update.exe",
-    "installer.exe",
-    "setup.exe",
     "vc_redist.x64.exe",
     "vc_redist.x86.exe",
     "vcredist_x64.exe",
     "vcredist_x86.exe",
     "elevate.exe",
     "helper.exe",
+    "installer.exe",
+    "setup.exe",
 }
 
 # Windows System and Driver Utilities
@@ -56,27 +76,30 @@ SYSTEM_AND_DRIVER_TOOLS = [
     ("Network Connections", r"C:\Windows\System32\ncpa.cpl"),
     ("Hardware & Driver Wizard", r"C:\Windows\System32\hdwwiz.cpl"),
     ("Computer Management", r"C:\Windows\System32\compmgmt.msc"),
+    ("Snipping Tool", r"C:\Windows\System32\SnippingTool.exe"),
+    ("File Explorer", r"C:\Windows\explorer.exe"),
+    ("Character Map", r"C:\Windows\System32\charmap.exe"),
+    ("On-Screen Keyboard", r"C:\Windows\System32\osk.exe"),
+    ("Magnifier", r"C:\Windows\System32\magnify.exe"),
     ("Windows Terminal", r"C:\Users\%USERNAME%\AppData\Local\Microsoft\WindowsApps\wt.exe"),
 ]
 
 
 def clean_name(name: str) -> str:
     """Normalize and format application display name."""
-    # Remove file extensions if present
-    for ext in (".exe", ".lnk", ".msc", ".cpl"):
+    for ext in (".exe", ".lnk", ".msc", ".cpl", ".url"):
         if name.lower().endswith(ext):
             name = name[:-len(ext)]
-    # Replace underscores/dashes with space if needed
     name = name.replace("_", " ").strip()
     return name
 
 
 class AppIndexer:
-    """Discovers installed applications and driver utilities across Windows."""
+    """Discovers installed applications, UWP Store apps, and driver utilities across Windows."""
 
     def __init__(self):
-        self.apps: Dict[str, str] = {}  # {Normalized Name: Full Executable Path}
-        self.seen_paths: Set[str] = set()
+        self.apps: Dict[str, str] = {}  # {Normalized Name: Full Executable Path or shell:AppsFolder/AppID}
+        self.seen_targets: Set[str] = set()
         self._init_com()
 
     def _init_com(self):
@@ -85,38 +108,59 @@ class AppIndexer:
         try:
             import win32com.client
             self.shell = win32com.client.Dispatch("WScript.Shell")
-        except Exception as e:
-            print(f"Warning: win32com not available ({e}). Lnk resolution may be slower.")
+        except Exception:
+            pass
 
     def add_entry(self, name: str, path: str):
-        """Record an application entry if valid and existing."""
-        if not path or not isinstance(path, str):
+        """Record an application entry if valid and not excluded."""
+        if not name or not path or not isinstance(path, str):
             return
 
-        # Expand environment variables
         expanded_path = os.path.expandvars(path).strip().strip('"').strip("'")
         if not expanded_path:
             return
 
-        # Strip arguments if included (e.g. "chrome.exe --profile-directory=Default")
-        if ".exe" in expanded_path.lower():
-            idx = expanded_path.lower().find(".exe") + 4
-            possible_path = expanded_path[:idx]
-            if os.path.isfile(possible_path):
-                expanded_path = possible_path
-
-        # Validate file existence
-        if not os.path.exists(expanded_path):
+        # Skip web links / URL shortcuts
+        if expanded_path.lower().endswith(".url"):
             return
 
-        # Check exclusion list
+        lower_path = expanded_path.lower()
+
+        # Check exclusion directories
+        for excl in EXCLUDE_DIR_SUBSTRINGS:
+            if excl in lower_path:
+                return
+
+        # Check filename exclusions
         filename = os.path.basename(expanded_path).lower()
         if filename in EXCLUDE_FILENAMES:
             return
 
-        # Normalize key and path
+        # Handle UWP AppX apps
+        if lower_path.startswith("shell:"):
+            target_norm = lower_path
+            formatted_name = clean_name(name)
+            if not formatted_name:
+                formatted_name = clean_name(filename)
+            if target_norm not in self.seen_targets:
+                self.apps[formatted_name] = expanded_path
+                self.seen_targets.add(target_norm)
+            return
+
+        # If executable with arguments, isolate the executable binary
+        if ".exe" in lower_path:
+            idx = lower_path.find(".exe") + 4
+            possible_path = expanded_path[:idx]
+            if os.path.isfile(possible_path):
+                expanded_path = possible_path
+
+        # Validate file exists
+        if not os.path.exists(expanded_path):
+            return
+
         norm_path = os.path.normpath(expanded_path)
-        if norm_path.lower() in self.seen_paths:
+        target_norm = norm_path.lower()
+        if target_norm in self.seen_targets:
             return
 
         formatted_name = clean_name(name)
@@ -124,7 +168,34 @@ class AppIndexer:
             formatted_name = clean_name(filename)
 
         self.apps[formatted_name] = norm_path
-        self.seen_paths.add(norm_path.lower())
+        self.seen_targets.add(target_norm)
+
+    def scan_start_apps_powershell(self):
+        """Query native Windows Shell for modern UWP apps, Microsoft Store apps, and registered desktop apps."""
+        try:
+            cmd = "Get-StartApps | Select-Object Name, AppID | ConvertTo-Json"
+            DETACHED_FLAGS = 0x08000000
+            out = subprocess.check_output(
+                ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", cmd],
+                creationflags=DETACHED_FLAGS,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            data = json.loads(out)
+            if isinstance(data, dict):
+                data = [data]
+            for item in data:
+                n = item.get("Name")
+                appid = item.get("AppID")
+                if n and appid:
+                    # If AppID is a file path on disk, use it directly
+                    if os.path.isfile(appid):
+                        self.add_entry(n, appid)
+                    elif not appid.endswith(".url"):
+                        self.add_entry(n, f"shell:AppsFolder\\{appid}")
+        except Exception as e:
+            print(f"Warning: Get-StartApps scan failed ({e}).")
 
     def scan_start_menu(self):
         """Scan Start Menu directories for .lnk shortcuts."""
@@ -144,8 +215,8 @@ class AppIndexer:
 
                     shortcut_path = os.path.join(root, file)
                     target = self._resolve_shortcut(shortcut_path)
-                    if target and (target.lower().endswith(".exe") or target.lower().endswith(".msc")):
-                        app_name = file[:-4]  # Strip .lnk
+                    if target and (target.lower().endswith((".exe", ".msc", ".cpl"))):
+                        app_name = file[:-4]
                         self.add_entry(app_name, target)
 
     def _resolve_shortcut(self, lnk_path: str) -> Optional[str]:
@@ -153,7 +224,7 @@ class AppIndexer:
         if self.shell:
             try:
                 shortcut = self.shell.CreateShortCut(lnk_path)
-                return shortcut.Targetpath
+                return shortcut.TargetPath
             except Exception:
                 pass
         return None
@@ -210,7 +281,8 @@ class AppIndexer:
                                 try:
                                     icon_path, _ = winreg.QueryValueEx(app_key, "DisplayIcon")
                                     if icon_path and ".exe" in icon_path.lower():
-                                        self.add_entry(display_name, icon_path)
+                                        clean_icon = icon_path.split(",")[0].strip().strip('"')
+                                        self.add_entry(display_name, clean_icon)
                                         continue
                                 except WindowsError:
                                     pass
@@ -228,12 +300,13 @@ class AppIndexer:
                 continue
 
     def scan_common_directories(self):
-        """Scan standard application installation folders."""
+        """Scan standard application installation folders, desktop, and downloads."""
         dirs_to_scan = [
             (os.path.expandvars(r"%LOCALAPPDATA%\Programs"), 3),
-            (os.path.expandvars(r"%PROGRAMFILES%"), 2),
-            (os.path.expandvars(r"%PROGRAMFILES(X86)%"), 2),
+            (os.path.expandvars(r"%PROGRAMFILES%"), 3),
+            (os.path.expandvars(r"%PROGRAMFILES(X86)%"), 3),
             (os.path.expandvars(r"%USERPROFILE%\Desktop"), 1),
+            (os.path.expandvars(r"C:\Users\Public\Desktop"), 1),
             (os.path.expandvars(r"%USERPROFILE%\Downloads"), 1),
         ]
 
@@ -249,10 +322,14 @@ class AppIndexer:
                     dirs.clear()
                     continue
 
+                low_r = root.lower()
+                if any(ex in low_r for ex in EXCLUDE_DIR_SUBSTRINGS):
+                    dirs.clear()
+                    continue
+
                 for file in files:
                     if file.lower().endswith(".exe"):
                         full_path = os.path.join(root, file)
-                        # Name derives from parent folder or clean file name
                         folder_name = os.path.basename(root)
                         app_name = file[:-4]
                         if len(app_name) < 4 or app_name.lower() in ("app", "main", "launch", "run", "client"):
@@ -286,6 +363,11 @@ class AppIndexer:
                 dirs.clear()
                 continue
 
+            low_r = root.lower()
+            if any(ex in low_r for ex in EXCLUDE_DIR_SUBSTRINGS):
+                dirs.clear()
+                continue
+
             for file in files:
                 if file.lower().endswith(".exe"):
                     full_path = os.path.join(root, file)
@@ -296,6 +378,9 @@ class AppIndexer:
 
     def run_full_scan(self) -> Dict[str, str]:
         """Perform full multi-source indexing and return sorted dictionary."""
+        print("Scanning Windows Shell StartApps (Store & UWP apps)...")
+        self.scan_start_apps_powershell()
+
         print("Scanning Start Menu shortcuts...")
         self.scan_start_menu()
 
@@ -319,7 +404,7 @@ class AppIndexer:
         if not target_paths:
             target_paths = [APPS_TXT_ROOT, APPS_TXT_PKG]
 
-        # Sort alphabetically by application name
+        # Sort alphabetically by application name (case-insensitive)
         sorted_items = sorted(self.apps.items(), key=lambda x: x[0].lower())
 
         lines = [

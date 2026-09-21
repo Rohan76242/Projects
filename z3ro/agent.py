@@ -1,20 +1,51 @@
 import re
 import time
+import urllib.parse
 from typing import Optional
 
 from z3ro.brain import LocalBrain, DEVELOPER_INTRO, is_identity_request
 from z3ro.planner import Planner, Plan, PlannedAction
-from z3ro.tools.system import execute_tool
+from z3ro.tools.system import execute_tool, ToolResult
 from z3ro.window import is_window_focused
 from z3ro.vision import Vision
 
 
 def normalize_speech(text: str) -> str:
-    """Normalize common speech recognition artifacts, homophones, and typos."""
+    """Normalize common speech recognition artifacts, homophones, typos, and strip wake words."""
     t = text.strip()
+    # 1. Strip leading wake words, agent names, and greetings
+    # e.g., "okay, zero", "ok zero", "hey zero", "zero", "hey sobia", "sobia", "okay sobia"
+    t = re.sub(
+        r"^(?:(?:hey|ok|okay|hi|hello)[\s,]+)?(?:zero|z3ro|sobia|assistant)\b[\s,:\-]*",
+        "",
+        t,
+        flags=re.IGNORECASE,
+    ).strip()
+    # 2. Strip leading & trailing polite filler
+    t = re.sub(
+        r"^(?:(?:can|could|would)\s+you\s+(?:please\s+)?|please\s+|kindly\s+)",
+        "",
+        t,
+        flags=re.IGNORECASE,
+    ).strip()
+    t = re.sub(
+        r"[\s,]+(?:for\s+me|please|right\s+now|now|quickly|asap)[\.?!]*$",
+        "",
+        t,
+        flags=re.IGNORECASE,
+    ).strip()
+
+
+    # 3. Speech pause artifact: 'to ,' or 'to , ' -> 'to '
+    t = re.sub(r"\bto\s*,\s*", "to ", t, flags=re.IGNORECASE)
+    t = re.sub(r"\b(send|text|msg|message|to)\s*,\s*", r"\1 ", t, flags=re.IGNORECASE)
+
     t = re.sub(r"\bwhats\s*aap\b", "whatsapp", t, flags=re.IGNORECASE)
     t = re.sub(r"\bwhats\s*app\b", "whatsapp", t, flags=re.IGNORECASE)
     t = re.sub(r"\bwhat's\s*app\b", "whatsapp", t, flags=re.IGNORECASE)
+    t = re.sub(r"\btxt\b", "text", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bmsz\b", "message", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bmsg\b", "message", t, flags=re.IGNORECASE)
     t = re.sub(r"\btele\s*gram\b", "telegram", t, flags=re.IGNORECASE)
     t = re.sub(r"\byou\s*tube\b", "youtube", t, flags=re.IGNORECASE)
     t = re.sub(r"\bvedio\b", "video", t, flags=re.IGNORECASE)
@@ -36,6 +67,42 @@ def parse_direct_intent(user_input: str) -> Optional[Plan]:
     """
     clean = normalize_speech(user_input)
     lowered = clean.lower().strip()
+
+    # 0. Immediate greetings & pleasantries with warm, caring, funny friend persona
+    greetings_map = {
+        "hi": "Hey! So good to see you! How's your day going?",
+        "hello": "Hey there! Honestly so glad you're here. What are we working on?",
+        "hey": "Hey! Okay tell me, what's on your mind?",
+        "yo": "Hey! What are we up to today?",
+        "good morning": "Good morning! Hope you slept well and had some coffee. Ready when you are!",
+        "good afternoon": "Good afternoon! Hope your day is treating you kindly so far.",
+        "good evening": "Good evening! Let's get things done so you can relax tonight.",
+        "how are you": "I'm doing really good! Actually felt so excited to jump back in. How are you holding up?",
+        "how are u": "I'm doing great! How about you? Having a good day?",
+        "how r u": "I'm doing great! How about you? Having a good day?",
+        "how are you doing": "Doing great! Just happy to be here hanging out with you. How's everything with you?",
+        "how was your day": "Okay wait, I have to tell you about my day because it was kind of a mess — in a good way? Stay with me! How was yours?",
+        "how was ur day": "Okay wait, I have to tell you about my day because it was kind of a mess — in a good way? Stay with me! How was yours?",
+        "whats up": "Not much, just here and ready to help! What's going on with you?",
+        "what's up": "Not much, just ready when you are! Tell me everything.",
+        "sup": "Hey! How's it going?",
+        "thank you": "Aww, of course! You know I've always got your back.",
+        "thanks": "Anytime! Seriously, always happy to help.",
+        "bye": "Aw, heading out? Take care of yourself today, okay? Talk soon!",
+        "goodbye": "Goodbye! Don't be a stranger, I'll be right here whenever you need me!",
+        "i had a rough day": "Aw no, really? I'm so sorry. Take a deep breath — we got this together. Tell me what happened.",
+        "rough day": "Aw no, I'm so sorry. Take a deep breath — we're going to get through it together. What's going on?",
+        "i am tired": "You've been working so hard! Take care of yourself today, okay? Let me handle the heavy lifting.",
+        "im tired": "You've been working so hard! Take care of yourself today, okay? Let me handle the heavy lifting.",
+        "i am stressed": "Okay wait, don't panic, we got this. Take a deep breath. Tell me what's on your plate.",
+        "im stressed": "Okay wait, don't panic, we got this. Take a deep breath. Tell me what's on your plate.",
+        "i did it": "YES!! I'm so proud of you! Honestly, that's huge. Look at you go!",
+        "we did it": "YES!! Look at us! That was incredible, I'm so proud of what we just pulled off!",
+        "tell me a joke": "Okay so why don't scientists trust atoms? Because they literally make up everything! I know, classic dad joke, but you smiled a little, right?",
+        "tell me something": "I know it's a small thing but honestly it made me so happy, and I just wanted to share it with you: having you here makes my day so much brighter.",
+    }
+    if lowered in greetings_map:
+        return Plan(actions=[PlannedAction(action="greet", message=greetings_map[lowered])])
 
     # 1. Volume controls
     if any(p in lowered for p in (
@@ -100,57 +167,103 @@ def parse_direct_intent(user_input: str) -> Optional[Plan]:
     )) or lowered == "previous":
         return Plan(actions=[PlannedAction(action="previous_song")])
 
-    # 4. WhatsApp messaging
-    wa_patterns = [
-        r"^(?:send\s+)?(?:a\s+)?whatsapp\s+(?:message|msg)?\s*(?:to\s+)?([a-zA-Z0-9_\s\+]+?)\s+(?:saying|that|message\s+is)?\s*[:,-]?\s*(.+)$",
-        r"^(?:send\s+)?(?:a\s+)?(?:message|msg|text)\s+(?:on|in|via)\s+whatsapp\s+(?:to\s+)?([a-zA-Z0-9_\s\+]+?)\s+(?:saying|that)?\s*[:,-]?\s*(.+)$",
-        r"^(?:send\s+)?(?:a\s+)?(?:message|msg|text)\s+to\s+([a-zA-Z0-9_\s\+]+?)\s+(?:on|in|via)\s+whatsapp\s+(?:saying|that)?\s*[:,-]?\s*(.+)$",
-        r"^text\s+([a-zA-Z0-9_\s\+]+?)\s+(?:on|in|via)\s+whatsapp\s+(?:saying|that)?\s*[:,-]?\s*(.+)$",
-        r"^message\s+([a-zA-Z0-9_\s\+]+?)\s+(?:on|in|via)\s+whatsapp\s+(?:saying|that)?\s*[:,-]?\s*(.+)$",
-    ]
-    for pat in wa_patterns:
-        m = re.match(pat, clean, re.IGNORECASE)
-        if m:
-            recipient = m.group(1).strip()
-            msg = m.group(2).strip()
-            if recipient.lower().startswith("to "):
-                recipient = recipient[3:].strip()
-            if recipient and msg:
-                return Plan(actions=[PlannedAction(action="send_whatsapp", recipient=recipient, message=msg)])
+    # 4. Universal Multi-App Messaging & Reply (WhatsApp, Telegram, Discord, Slack, Teams, Skype, Active)
+    from z3ro.messaging.universal import extract_message_intent
+    msg_intent = extract_message_intent(clean)
+    if msg_intent is not None:
+        itype = msg_intent["type"]
+        msg_text = msg_intent["message"]
 
-    # 4b. Telegram messaging
-    tg_patterns = [
-        r"^(?:send\s+)?(?:a\s+)?telegram\s+(?:message|msg)?\s*(?:to\s+)?([a-zA-Z0-9_@\s\+]+?)\s+(?:saying|that)?\s*[:,-]?\s*(.+)$",
-        r"^(?:send\s+)?(?:a\s+)?(?:message|msg|text)\s+(?:on|in|via)\s+telegram\s+(?:to\s+)?([a-zA-Z0-9_@\s\+]+?)\s+(?:saying|that)?\s*[:,-]?\s*(.+)$",
-    ]
-    for pat in tg_patterns:
-        m = re.match(pat, clean, re.IGNORECASE)
-        if m:
-            recipient = m.group(1).strip()
-            msg = m.group(2).strip()
-            if recipient.lower().startswith("to "):
-                recipient = recipient[3:].strip()
-            if recipient and msg:
-                return Plan(actions=[PlannedAction(action="send_telegram", recipient=recipient, message=msg)])
+        if itype == "reply":
+            try:
+                from z3ro.notification_watcher import get_last_notification
+                notif = get_last_notification()
+            except ImportError:
+                notif = None
 
-    # 5. Play song / YouTube
-    if any(lowered.startswith(p) for p in ("play song ", "play a song ", "play music ", "play ")) or "play " in lowered:
+            if notif:
+                app_lower = notif["app"].lower()
+                sender = notif["sender"]
+                return Plan(actions=[
+                    PlannedAction(action="send_app_message", app=app_lower, recipient=sender, message=msg_text)
+                ])
+            else:
+                return Plan(actions=[
+                    PlannedAction(action="type_text", text=msg_text, press_enter=True),
+                ])
+
+        elif itype == "send_app":
+            return Plan(actions=[
+                PlannedAction(
+                    action="send_app_message",
+                    app=msg_intent["app"],
+                    recipient=msg_intent["recipient"],
+                    message=msg_text,
+                )
+            ])
+
+        elif itype == "send_active":
+            return Plan(actions=[
+                PlannedAction(action="type_text", text=msg_text, press_enter=True),
+            ])
+
+
+    # 5. YouTube Search & Video Navigation
+    # e.g.: "open youtube and search <q>", "search <q> on youtube", "search youtube for <q>", "youtube search <q>"
+    m_yt_search = (
+        re.match(r"^(?:open\s+youtube\s+(?:and\s+)?(?:search|find|look\s+up|search\s+for))\s+(.+)$", clean, re.IGNORECASE)
+        or re.match(r"^(?:search|look\s+up|find)\s+(.+?)\s+(?:on|in)\s+youtube$", clean, re.IGNORECASE)
+        or re.match(r"^(?:search\s+youtube\s+(?:for\s+)?)\s*(.+)$", clean, re.IGNORECASE)
+        or re.match(r"^youtube\s+(?:search\s+)?(.+)$", clean, re.IGNORECASE)
+    )
+    if m_yt_search:
+        yt_query = m_yt_search.group(1).strip()
+        if yt_query and yt_query.lower() not in ("app", "website", "page"):
+            target_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote_plus(yt_query)}"
+            return Plan(actions=[PlannedAction(action="open_app", app=target_url)])
+
+    # 6. Play song / video / YouTube playback
+    if any(lowered.startswith(p) for p in ("play song ", "play a song ", "play music ", "play video ", "play a video ", "play the video ", "play ")) or "play " in lowered:
         song_q = clean
-        for p in ("open youtube and play ", "play song ", "play a song ", "play music ", "play "):
+        for p in (
+            "open youtube and play ", "open youtube play ",
+            "play song ", "play a song ", "play music ",
+            "play video of ", "play a video of ", "play the video of ",
+            "play video ", "play a video ", "play the video ",
+            "play "
+        ):
             if song_q.lower().startswith(p):
                 song_q = song_q[len(p):].strip()
                 break
-        for s in (" on youtube", " in youtube"):
+        for s in (" on youtube", " in youtube", " from youtube", " video"):
             if song_q.lower().endswith(s):
                 song_q = song_q[:-len(s)].strip()
-        if not song_q or song_q.lower() in ("a song", "song", "music", "something"):
+        if not song_q or song_q.lower() in ("a song", "song", "music", "something", "video", "a video"):
             song_q = "top hits"
         return Plan(actions=[PlannedAction(action="play_song", song=song_q)])
 
-    # 6. Compound: Open app and type
-    m_compound = re.match(r"^(?:open|launch)\s+([a-zA-Z0-9_\s]+?)\s+(?:and|,|then)\s+(?:type|write|enter)\s+(.+)$", clean, re.IGNORECASE)
+    # 7. Browser Search: "open brave and search github" or "search github"
+    m_search = re.match(r"^(?:open\s+up|open|launch|start|run)\s+(?:up\s+)?(brave|chrome|google chrome|edge|firefox|browser)\s+(?:and\s+)?(?:search|find|google|look up|search for)\s+(.+)$", clean, re.IGNORECASE)
+    if m_search:
+        q = m_search.group(2).strip()
+        return Plan(actions=[
+            PlannedAction(action="open_app", app=f"https://www.google.com/search?q={urllib.parse.quote_plus(q)}")
+        ])
+
+    m_pure_search = re.match(r"^(?:search|google|search for|look up)\s+(.+)$", clean, re.IGNORECASE)
+    if m_pure_search and not any(clean.lower().startswith(p) for p in ("search file", "search files", "search window")):
+        q = m_pure_search.group(1).strip()
+        return Plan(actions=[
+            PlannedAction(action="open_app", app=f"https://www.google.com/search?q={urllib.parse.quote_plus(q)}")
+        ])
+
+    # 7a. Compound: Open app and type
+    m_compound = re.match(r"^(?:open\s+up|open|launch|start|run)\s+([a-zA-Z0-9_\s]+?)\s+(?:and|,|then)\s+(?:type|write|enter)\s+(.+)$", clean, re.IGNORECASE)
     if m_compound:
         app_name = m_compound.group(1).strip()
+        for p in ("the app ", "the ", "my "):
+            if app_name.lower().startswith(p):
+                app_name = app_name[len(p):].strip()
         type_str = m_compound.group(2).strip()
         return Plan(actions=[
             PlannedAction(action="open_app", app=app_name),
@@ -159,30 +272,62 @@ def parse_direct_intent(user_input: str) -> Optional[Plan]:
             PlannedAction(action="type_text", text=type_str, title=app_name),
         ])
 
-    # 6b. Targeted Typing: type <text> in/into/on <app>
-    m_target = re.match(r"^(?:type|write|enter)\s+(.+?)\s+(?:in|into|on)\s+([a-zA-Z0-9_\s]+)$", clean, re.IGNORECASE)
+    # 7b. Targeted Typing: type <text> in/into/on <app>
+    m_target = re.match(r"^(?:type|enter)\s+(.+?)\s+(?:in|into|on)\s+([a-zA-Z0-9_\s]+)$", clean, re.IGNORECASE)
     if m_target:
         type_str = m_target.group(1).strip()
         target_app = m_target.group(2).strip()
+        for p in ("the app ", "the ", "my "):
+            if target_app.lower().startswith(p):
+                target_app = target_app[len(p):].strip()
         return Plan(actions=[
             PlannedAction(action="find_window", title=target_app),
             PlannedAction(action="focus_window", title=target_app),
             PlannedAction(action="type_text", text=type_str, title=target_app),
         ])
 
-    # 7. Pure Type Text
-    m_type = re.match(r"^(?:type|write|enter)\s+(.+)$", clean, re.IGNORECASE)
-    if m_type:
+    # 8. Pure Type Text (only for explicit type commands, not creative writing)
+    m_type = re.match(r"^(?:type|press|enter)\s+(.+)$", clean, re.IGNORECASE)
+    if m_type and not clean.lower().startswith("type of"):
         return Plan(actions=[PlannedAction(action="type_text", text=m_type.group(1).strip())])
 
-    # 8. Pure Open App
-    m_open = re.match(r"^(?:open|launch|start|run)\s+([a-zA-Z0-9_\s\.\-]+)$", clean, re.IGNORECASE)
+    # 9. Pure Open App
+    m_open = re.match(r"^(?:open\s+up|open|launch|start|run|bring\s+up|switch\s+to|go\s+to)\s+([a-zA-Z0-9_\s\.\-]+)$", clean, re.IGNORECASE)
     if m_open:
         target = m_open.group(1).strip()
+        for p in ("the app ", "the ", "my "):
+            if target.lower().startswith(p):
+                target = target[len(p):].strip()
         if not any(k in target.lower() for k in ("and ", "then ", "window")):
             return Plan(actions=[PlannedAction(action="open_app", app=target)])
 
-    # 9. Pure Close App
+    # 9b. Standalone App / Platform Names (e.g. "youtube", "yt", "whatsapp", "chrome", "edge", "calculator", "calc", "notepad")
+    standalone_targets = {
+        "youtube": "youtube",
+        "yt": "youtube",
+        "you tube": "youtube",
+        "whatsapp": "whatsapp",
+        "wa": "whatsapp",
+        "telegram": "telegram",
+        "tg": "telegram",
+        "chrome": "Google Chrome",
+        "google chrome": "Google Chrome",
+        "edge": "Microsoft Edge",
+        "browser": "Google Chrome",
+        "calculator": "Calculator",
+        "calc": "Calculator",
+        "notepad": "Notepad",
+        "settings": "Settings",
+        "spotify": "Spotify",
+        "netflix": "Netflix",
+        "reddit": "Reddit",
+        "github": "GitHub",
+        "gmail": "Gmail",
+    }
+    if lowered in standalone_targets:
+        return Plan(actions=[PlannedAction(action="open_app", app=standalone_targets[lowered])])
+
+    # 10. Pure Close App
     m_close = re.match(r"^(?:close|quit|exit|kill|terminate)\s+([a-zA-Z0-9_\s\.\-]+)$", clean, re.IGNORECASE)
     if m_close:
         target = m_close.group(1).strip()
@@ -271,6 +416,12 @@ class Z3ROAgent:
         self,
         action,
     ):
+        if action.action == "greet":
+            return ToolResult(
+                success=True,
+                output=action.message or "Hello! How can I assist you?",
+            )
+
         if action.action == "open_app":
             self.last_active_app = action.app
             return execute_tool(
@@ -298,7 +449,9 @@ class Z3ROAgent:
                 "type_text",
                 text=action.text,
                 title=target_title,
+                press_enter=bool(action.press_enter),
             )
+
 
         if action.action == "press_key":
             return execute_tool(
@@ -344,6 +497,15 @@ class Z3ROAgent:
         if action.action == "open_telegram":
             return execute_tool("open_telegram")
 
+        if action.action == "send_app_message":
+            return execute_tool(
+                "send_app_message",
+                app=action.app,
+                recipient=action.recipient,
+                message=action.message or action.text,
+            )
+
+
         if action.action == "play_song":
             return execute_tool(
                 "play_song",
@@ -385,6 +547,10 @@ class Z3ROAgent:
 
         if action.action == "close_app":
             return execute_tool("close_app", app=action.app or action.title or "")
+
+        if action.action == "greet":
+            msg = getattr(action, "message", None) or getattr(action, "text", None) or "Hey! So good to see you! How's your day going?"
+            return ToolResult(success=True, output=msg)
 
         return None
 
@@ -450,6 +616,7 @@ No explanation.
         self,
         plan,
         user_input,
+        skip_vision: bool = True,
     ):
 
         results = []
@@ -512,7 +679,8 @@ No explanation.
 
             # Only fire vision check once, on the last
             # qualifying action in the whole plan.
-            if action is last_vision_eligible_action:
+            # Skip entirely for direct-intent fast-path actions.
+            if not skip_vision and action is last_vision_eligible_action:
 
                 print(
                     "Z3RO: Checking screen "
@@ -539,21 +707,34 @@ No explanation.
         "focus", "switch", "bring up",
         "minimize", "maximize", "restore",
         "find", "show windows", "list windows",
-        "type", "write", "enter",
-        "press", "hotkey",
+        "type", "press", "hotkey",
         "click", "double click", "move mouse",
         "play", "song", "songs", "music", "video", "videos", "track", "audio",
-        "youtube", "whatsapp", "telegram", "send", "message", "msg", "text",
+        "youtube", "whatsapp", "telegram", "discord", "slack", "teams", "skype",
+        "send", "message", "msg", "text", "dm", "tell", "chat", "post",
         "volume", "louder", "quieter", "sound", "mute", "unmute", "silence",
-        "stop", "pause", "resume", "skip", "next", "previous", "change",
-        "vedio", "vedios", "whats", "app",
+        "stop", "pause", "resume", "skip", "next", "previous",
+        "reply", "respond",
+        "vedio", "vedios",
     }
+
+
+    CONVERSATIONAL_PREFIXES = (
+        "what", "who", "where", "when", "why", "how",
+        "tell me", "explain", "describe", "can you tell", "can you explain",
+        "write a", "write me", "write an", "generate", "code a", "create a script",
+        "suggest", "recommend", "give me", "teach me", "help me understand",
+    )
 
     def is_action_request(self, text: str) -> bool:
         """Determine if user input is an OS action or conversation."""
         if parse_direct_intent(text) is not None:
             return True
-        lowered = normalize_speech(text).lower().strip()
+        clean = normalize_speech(text)
+        lowered = clean.lower().strip()
+        # Fast exit: Conversational questions or creative requests
+        if any(lowered.startswith(p) for p in self.CONVERSATIONAL_PREFIXES):
+            return False
         words = set(lowered.split())
         if bool(words & self.ACTION_KEYWORDS):
             return True
@@ -580,7 +761,7 @@ No explanation.
             if direct_plan is not None:
                 actions_str = ", ".join(a.action for a in direct_plan.actions)
                 print(f"  [intent] Fast-path direct intent matched: [{actions_str}] in {time.perf_counter() - t_total:.4f}s")
-                results = self.execute_plan(direct_plan, user_input)
+                results = self.execute_plan(direct_plan, user_input, skip_vision=True)
                 print(f"  [timing] TOTAL turn: {time.perf_counter() - t_total:.2f}s")
                 return results if results else ["Done."]
 
@@ -604,6 +785,7 @@ No explanation.
             results = self.execute_plan(
                 plan,
                 user_input,
+                skip_vision=True,
             )
 
             print(f"  [timing] TOTAL turn: {time.perf_counter() - t_total:.2f}s")

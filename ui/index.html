@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
+  <title>Z3RO Autonomous Economic Agent</title>
 </head>
 <body>
   <div id="island" class="island collapsed">
@@ -14,6 +15,8 @@
         <img src="assets/logo.png" alt="AI Emblem" class="pill-logo" />
         <span id="status-orb" class="status-orb idle"></span>
         <span id="brand-name" class="brand-name">Z3RO</span>
+        <!-- Real-time Capital Chip -->
+        <span id="pill-balance" class="pill-balance" title="Verified Net Capital">$1,000.00</span>
       </div>
 
       <!-- Center: Dynamic Morphing State (Wave / Thinking / Action) -->
@@ -66,7 +69,7 @@
         </button>
 
         <!-- Expand / Collapse Chevron -->
-        <button id="btn-expand" class="btn-icon btn-expand" title="Toggle Chat Box">
+        <button id="btn-expand" class="btn-icon btn-expand" title="Toggle Dashboard Drawer">
           <svg id="chevron-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
@@ -74,50 +77,218 @@
       </div>
     </div>
 
-    <!-- Chat Box Drawer (Extruded Downward) -->
+    <!-- Drawer (Extruded Downward) -->
     <div id="chat-drawer" class="chat-drawer">
-      <!-- Ambient Chat Watermark (Appears continuously during active chat) -->
-      <div id="chat-watermark" class="chat-watermark" aria-hidden="true">
-        <img src="assets/logo.png" alt="SOBIA Watermark" class="watermark-logo" />
+      <!-- Segmented Navigation Tab Bar -->
+      <div id="drawer-nav" class="drawer-nav">
+        <button type="button" class="nav-tab active" data-tab="chat">💬 Chat</button>
+        <button type="button" class="nav-tab" data-tab="economy">📈 Economy</button>
+        <button type="button" class="nav-tab" data-tab="approvals">
+          🛡️ Approvals <span id="nav-approval-badge" class="badge-count hidden">0</span>
+        </button>
+        <button type="button" class="nav-tab" data-tab="compliance">⚖️ Compliance</button>
       </div>
 
-      <!-- Message Stream -->
-      <div id="message-list" class="message-list">
-        <!-- Centered AI Logo & Greeting -->
-        <div id="welcome-hero" class="welcome-hero">
-          <div class="hero-logo-wrapper">
-            <img src="assets/logo.png" alt="AI Emblem" class="hero-logo" />
+      <!-- TAB 1: CHAT ASSISTANT -->
+      <div id="tab-pane-chat" class="tab-pane active">
+        <!-- Ambient Chat Watermark -->
+        <div id="chat-watermark" class="chat-watermark" aria-hidden="true">
+          <img src="assets/logo.png" alt="SOBIA Watermark" class="watermark-logo" />
+        </div>
+
+        <!-- Message Stream -->
+        <div id="message-list" class="message-list">
+          <!-- Centered AI Logo & Greeting -->
+          <div id="welcome-hero" class="welcome-hero">
+            <div class="hero-logo-wrapper">
+              <img src="assets/logo.png" alt="AI Emblem" class="hero-logo" />
+            </div>
+            <div class="hero-text-block">
+              <h2 class="greeting-name">Hello Rohan</h2>
+              <p class="greeting-subtitle">Autonomous Economic Engine & Assistant Ready</p>
+            </div>
           </div>
-          <div class="hero-text-block">
-            <h2 class="greeting-name">Hello Rohan</h2>
-            <p class="greeting-subtitle">what can I do for you?</p>
+        </div>
+
+        <!-- Chat Input Footer -->
+        <form id="chat-form" class="chat-footer">
+          <input
+            type="text"
+            id="chat-input"
+            class="chat-input"
+            placeholder="Ask Z3RO or instruct an autonomous task..."
+            autocomplete="off"
+          />
+          <button type="button" id="btn-input-mic" class="btn-icon btn-input-mic" title="Voice Input">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" x2="12" y1="19" y2="22"/>
+            </svg>
+          </button>
+          <button type="submit" id="btn-send" class="btn-icon btn-send" title="Send (Enter)">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"/>
+              <polyline points="5 12 12 5 19 12"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- TAB 2: ECONOMY & TELEMETRY -->
+      <div id="tab-pane-economy" class="tab-pane hidden">
+        <div class="panel-scroll-container">
+          <!-- Top Telemetry Row -->
+          <div class="telemetry-grid">
+            <div class="telemetry-card">
+              <span class="telemetry-label">CAPITAL BALANCE</span>
+              <span class="telemetry-val" id="econ-balance">$1,000.00</span>
+              <span class="telemetry-sub" id="econ-net-sub">Net Profit: +$0.00</span>
+            </div>
+
+            <div class="telemetry-card">
+              <span class="telemetry-label">SURVIVAL RUNWAY</span>
+              <span class="telemetry-val" id="econ-runway">240.0h</span>
+              <div class="runway-status-row">
+                <span class="badge-status badge-healthy" id="econ-status-badge">HEALTHY</span>
+                <span class="telemetry-sub">$100/day burn</span>
+              </div>
+            </div>
+
+            <div class="telemetry-card">
+              <span class="telemetry-label">RATE & SPEND LIMITS</span>
+              <div class="limits-status-row">
+                <span id="econ-rate-ratio">0 / 15 actions/hr</span>
+              </div>
+              <span class="telemetry-sub" id="econ-daily-cap">Max $50 / single tx</span>
+            </div>
+          </div>
+
+          <!-- Kill Switch & Action Control Bar -->
+          <div class="control-banner">
+            <div class="kill-switch-wrapper">
+              <span class="control-label">GLOBAL KILL SWITCH</span>
+              <button type="button" id="btn-kill-switch" class="btn-kill ready" title="Toggle Emergency Kill Switch">
+                <span class="kill-led"></span>
+                <span id="kill-text">READY (ACTIVE MONITORING)</span>
+              </button>
+            </div>
+            <button type="button" id="btn-run-cycle" class="btn-primary-action" title="Trigger Autonomous Cycle">
+              ▶ Run Discovery Step
+            </button>
+          </div>
+
+          <!-- Current Strategy & Experiment Tracker -->
+          <div class="strategy-card">
+            <div class="strategy-card-header">
+              <span class="section-badge">CURRENT FOCUS</span>
+              <span id="active-strategy-mode" class="mode-badge">AUTONOMOUS DISCOVERY</span>
+            </div>
+            <h4 id="active-strategy-name" class="strategy-title">Evaluating Emerging Value Hypotheses</h4>
+            <p id="active-strategy-desc" class="strategy-desc">Observing environment and testing bounded capabilities without hardcoded business constraints.</p>
+            <div class="confidence-container">
+              <div class="confidence-label-row">
+                <span>Confidence Metric</span>
+                <span id="active-strategy-conf">50%</span>
+              </div>
+              <div class="confidence-bar-bg">
+                <div id="active-strategy-bar" class="confidence-bar-fill" style="width: 50%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Verified Ledger Entries -->
+          <div class="section-card">
+            <div class="section-header-row">
+              <span class="section-title">VERIFIED LEDGER TRANSACTIONS</span>
+              <span class="source-tag">Immutable SQLite</span>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-ledger">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Action</th>
+                    <th>Cost</th>
+                    <th>Verified</th>
+                    <th>Net</th>
+                    <th>Source</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-ledger">
+                  <tr><td colspan="6" class="text-center text-dim">No transactions recorded yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Chat Input Footer -->
-      <form id="chat-form" class="chat-footer">
-        <input
-          type="text"
-          id="chat-input"
-          class="chat-input"
-          placeholder="Hello Rohan, what can I do for you..."
-          autocomplete="off"
-        />
-        <button type="button" id="btn-input-mic" class="btn-icon btn-input-mic" title="Voice Input">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-            <line x1="12" x2="12" y1="19" y2="22"/>
-          </svg>
-        </button>
-        <button type="submit" id="btn-send" class="btn-icon btn-send" title="Send (Enter)">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="19" x2="12" y2="5"/>
-            <polyline points="5 12 12 5 19 12"/>
-          </svg>
-        </button>
-      </form>
+      <!-- TAB 3: HUMAN APPROVALS QUEUE (Section 9.1 & 9.6) -->
+      <div id="tab-pane-approvals" class="tab-pane hidden">
+        <div class="panel-scroll-container">
+          <div class="info-banner">
+            <span class="info-icon">🛡️</span>
+            <div class="info-text">
+              <strong>Human Authorization Boundary (Sections 9.1 & 9.6)</strong>
+              <p>Irreversible actions, external communications, and financial commitments require explicit human sign-off before dispatch.</p>
+            </div>
+          </div>
+
+          <div id="approvals-container" class="approvals-container">
+            <div class="empty-state">
+              <span class="empty-icon">✓</span>
+              <p>No actions currently awaiting authorization.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: COMPLIANCE & STRATEGY MEMORY (Section 9.2 & 8) -->
+      <div id="tab-pane-compliance" class="tab-pane hidden">
+        <div class="panel-scroll-container">
+          <!-- Compliance Rejections Panel (Section 13) -->
+          <div class="section-card">
+            <div class="section-header-row">
+              <span class="section-title">COMPLIANCE-FILTER REJECTIONS (SECTION 9.2)</span>
+              <span class="badge-status badge-critical" id="badge-total-rejections">0 Rejections</span>
+            </div>
+            <p class="section-desc">Strategies violating licensing, CAN-SPAM, scraping rules, or platform ToS are intercepted and logged as REJECTED_COMPLIANCE.</p>
+            <div id="compliance-rejections-container" class="compliance-feed">
+              <div class="empty-state">
+                <span class="empty-icon">🛡️</span>
+                <p>Zero compliance violations. Legal filter active.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strategy Memory Learned Metrics (Section 8) -->
+          <div class="section-card" style="margin-top: 14px;">
+            <div class="section-header-row">
+              <span class="section-title">STRATEGY MEMORY (LEARNED OUTCOMES)</span>
+              <span class="source-tag">Measured Empirical Metrics</span>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-strategies">
+                <thead>
+                  <tr>
+                    <th>Strategy</th>
+                    <th>Confidence</th>
+                    <th>Spent</th>
+                    <th>Revenue</th>
+                    <th>Net Profit</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-strategies">
+                  <tr><td colspan="6" class="text-center text-dim">Memory empty. Run discovery step to learn.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 

@@ -26,17 +26,27 @@ TELEGRAM_AUMID = r"shell:AppsFolder\TelegramMessengerLLP.TelegramDesktop_t4vj0ps
 
 
 def open_telegram() -> dict:
-    """Launch the native Telegram desktop app on Windows."""
+    """Launch or focus the native Telegram desktop app on Windows."""
     try:
+        from z3ro.window import find_window, focus_window
+        tw = find_window("Telegram")
+        if tw:
+            focus_window("Telegram")
+            return {"success": True, "output": "Focused Telegram window."}
+
         try:
             os.startfile("tg://")
             logger.info("Opened Telegram via tg:// protocol.")
+            time.sleep(1.0)
+            focus_window("Telegram")
             return {"success": True, "output": "Opened Telegram."}
         except Exception:
             pass
 
         subprocess.Popen(["explorer.exe", TELEGRAM_AUMID])
         logger.info(f"Opened Telegram via UWP AppID: {TELEGRAM_AUMID}")
+        time.sleep(1.2)
+        focus_window("Telegram")
         return {"success": True, "output": "Opened Telegram."}
     except Exception as e:
         logger.error(f"Failed to open Telegram: {e}")
@@ -76,13 +86,29 @@ def send_telegram(recipient: str, message: str, auto_send: bool = True) -> dict:
         message: The message text to send.
         auto_send: If True, automatically dispatches the message.
     """
-    if not recipient or not recipient.strip():
-        return {"success": False, "output": "Recipient username or name is required."}
     if not message or not message.strip():
         return {"success": False, "output": "Message text is required."}
 
-    recipient_clean = recipient.strip()
     msg_clean = message.strip()
+    recipient_clean = recipient.strip() if recipient else ""
+
+    # Allow sending without explicit recipient (sends to currently active Telegram chat)
+    if not recipient_clean:
+        try:
+            import pyperclip
+            open_telegram()
+            time.sleep(0.5)
+            from z3ro.window import focus_window
+            focus_window("Telegram")
+            time.sleep(0.15)
+            pyperclip.copy(msg_clean)
+            pyautogui.hotkey("ctrl", "v")
+            time.sleep(0.1)
+            if auto_send:
+                pyautogui.press("enter")
+            return {"success": True, "output": f"Sent Telegram message: \"{msg_clean}\""}
+        except Exception as e:
+            return {"success": False, "output": f"Failed to send Telegram message: {e}"}
 
     # 1. Try Bot API if configured and recipient looks like a chat ID
     if recipient_clean.isdigit() or (recipient_clean.startswith("-") and recipient_clean[1:].isdigit()):
@@ -90,8 +116,8 @@ def send_telegram(recipient: str, message: str, auto_send: bool = True) -> dict:
         if bot_res:
             return bot_res
 
-    # 2. If recipient is a @username or direct username
-    if recipient_clean.startswith("@") or (" " not in recipient_clean and len(recipient_clean) > 3):
+    # 2. If recipient is an explicit @username
+    if recipient_clean.startswith("@"):
         clean_user = recipient_clean.lstrip("@")
         encoded_text = urllib.parse.quote(msg_clean)
         uri = f"tg://msg?to={clean_user}&text={encoded_text}"
@@ -122,18 +148,27 @@ def send_telegram(recipient: str, message: str, auto_send: bool = True) -> dict:
     try:
         import pyperclip
         open_telegram()
-        time.sleep(1.2)
+        time.sleep(0.8)
+        from z3ro.window import focus_window
+        focus_window("Telegram")
+        time.sleep(0.15)
 
-        # Focus search bar (Ctrl + K or Ctrl + F in Telegram)
+        # Clear any modal / active search
+        pyautogui.press("esc")
+        time.sleep(0.1)
+
+        # Focus search bar (Ctrl + K in Telegram Desktop)
         pyautogui.hotkey("ctrl", "k")
-        time.sleep(0.3)
+        time.sleep(0.2)
         pyperclip.copy(recipient_clean)
         pyautogui.hotkey("ctrl", "v")
-        time.sleep(0.7)
+        time.sleep(0.8)
+        pyautogui.press("down")
+        time.sleep(0.1)
         pyautogui.press("enter")
         time.sleep(0.5)
 
-        # Paste message
+        # Paste message into compose area
         pyperclip.copy(msg_clean)
         pyautogui.hotkey("ctrl", "v")
         time.sleep(0.2)

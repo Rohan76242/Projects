@@ -68,6 +68,8 @@ class PlannedAction:
     message: Optional[str] = None
     song: Optional[str] = None
     steps: Optional[int] = None
+    press_enter: Optional[bool] = None
+
 
 
 @dataclass
@@ -92,6 +94,8 @@ class Planner:
         "open_whatsapp",
         "send_telegram",
         "open_telegram",
+        "send_app_message",
+
         "play_song",
         "pause_song",
         "resume_song",
@@ -102,6 +106,7 @@ class Planner:
         "volume_up",
         "volume_down",
         "mute_volume",
+        "greet",
     }
 
     def parse(self, raw_text: str) -> Plan:

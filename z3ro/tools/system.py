@@ -3,10 +3,12 @@ from typing import Callable
 import subprocess
 
 import pyautogui
+pyautogui.FAILSAFE = False
 
 from z3ro.app_catalog import (
     enabled_apps,
     find_app,
+    launch_app_via_powershell,
 )
 from z3ro.window import (
     focus_window,
@@ -46,6 +48,82 @@ class Tool:
             )
 
 
+def get_working_browser() -> str | None:
+    """Find a verified, functional browser executable on the Windows host."""
+    import os
+    import shutil
+
+    candidates = [
+        # Google Chrome
+        os.path.expandvars(r"%PROGRAMFILES%\Google\Chrome\Application\chrome.exe"),
+        os.path.expandvars(r"%PROGRAMFILES(X86)%\Google\Chrome\Application\chrome.exe"),
+        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+        shutil.which("chrome.exe"),
+        shutil.which("chrome"),
+        # Microsoft Edge
+        os.path.expandvars(r"%PROGRAMFILES(X86)%\Microsoft\Edge\Application\msedge.exe"),
+        os.path.expandvars(r"%PROGRAMFILES%\Microsoft\Edge\Application\msedge.exe"),
+        shutil.which("msedge.exe"),
+        shutil.which("msedge"),
+        # Brave Browser
+        os.path.expandvars(r"%PROGRAMFILES%\BraveSoftware\Brave-Browser\Application\brave.exe"),
+        os.path.expandvars(r"%LOCALAPPDATA%\BraveSoftware\Brave-Browser\Application\brave.exe"),
+    ]
+    for p in candidates:
+        if p and os.path.isfile(p):
+            return p
+    return None
+
+
+def open_browser_url(url: str, app_mode: bool = False) -> bool:
+    """Reliably launch any web URL in Chrome, Edge, or default browser on Windows.
+    
+    Spawns asynchronously into the user's interactive desktop (WinSta0\\Default)
+    without opening unsightly console windows.
+    """
+    import subprocess
+
+    browser_exe = get_working_browser()
+    escaped_url = url.replace("'", "''")
+
+    if browser_exe:
+        escaped_exe = browser_exe.replace("'", "''")
+        if app_mode:
+            arg = f"--app={url}"
+            escaped_arg = arg.replace("'", "''")
+            ps_cmd = f"Start-Process -FilePath '{escaped_exe}' -ArgumentList '{escaped_arg}'"
+        else:
+            ps_cmd = f"Start-Process -FilePath '{escaped_exe}' -ArgumentList '{escaped_url}'"
+    else:
+        ps_cmd = f"Start-Process '{escaped_url}'"
+
+    CREATE_NO_WINDOW = 0x08000000
+    try:
+        subprocess.Popen(
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-NonInteractive",
+                "-WindowStyle",
+                "Hidden",
+                "-Command",
+                ps_cmd,
+            ],
+            creationflags=CREATE_NO_WINDOW,
+        )
+        return True
+    except Exception:
+        pass
+
+    # Secondary native fallback
+    try:
+        import webbrowser
+        webbrowser.open(url)
+        return True
+    except Exception:
+        return False
+
+
 def open_app(
     app: str,
 ) -> ToolResult:
@@ -63,19 +141,7 @@ def open_app(
     clean_query = app.strip()
     lower_query = clean_query.lower()
 
-    # 1. Native Standalone Desktop Apps (YouTube standalone app, WhatsApp, Telegram)
-    if lower_query in ("youtube", "yt", "you tube") or "youtube" in lower_query:
-        youtube_lnk = os.path.expandvars(r"%APPDATA%\Microsoft\Windows\Start Menu\Programs\Chrome Apps\YouTube.lnk")
-        if os.path.isfile(youtube_lnk):
-            try:
-                os.startfile(youtube_lnk)
-                return ToolResult(
-                    success=True,
-                    output="Opened YouTube.",
-                )
-            except Exception:
-                pass
-
+    # 1. Native Messaging Apps (WhatsApp, Telegram)
     if lower_query in ("whatsapp", "whats app", "wa"):
         from z3ro.messaging.whatsapp import open_whatsapp
         res = open_whatsapp()
@@ -92,12 +158,16 @@ def open_app(
             output=res["output"],
         )
 
-    # 2. Direct Web Platforms & Services (Google, Reddit, etc.)
+    # 2. Direct Web Platforms & Services (YouTube, Google, Reddit, etc.)
     WEB_PLATFORMS = {
+        "youtube": ("YouTube", "https://www.youtube.com"),
+        "yt": ("YouTube", "https://www.youtube.com"),
+        "you tube": ("YouTube", "https://www.youtube.com"),
         "google": ("Google", "https://www.google.com"),
         "github": ("GitHub", "https://www.github.com"),
         "reddit": ("Reddit", "https://www.reddit.com"),
         "chatgpt": ("ChatGPT", "https://chatgpt.com"),
+        "claude": ("Claude", "https://claude.ai"),
         "gmail": ("Gmail", "https://mail.google.com"),
         "netflix": ("Netflix", "https://www.netflix.com"),
         "twitch": ("Twitch", "https://www.twitch.tv"),
@@ -106,11 +176,25 @@ def open_app(
         "amazon": ("Amazon", "https://www.amazon.com"),
         "spotify web": ("Spotify", "https://open.spotify.com"),
         "wikipedia": ("Wikipedia", "https://www.wikipedia.org"),
+        "facebook": ("Facebook", "https://www.facebook.com"),
+        "instagram": ("Instagram", "https://www.instagram.com"),
+        "linkedin": ("LinkedIn", "https://www.linkedin.com"),
+        "maps": ("Google Maps", "https://maps.google.com"),
+        "google maps": ("Google Maps", "https://maps.google.com"),
+        "outlook": ("Outlook", "https://outlook.live.com"),
+        "docs": ("Google Docs", "https://docs.google.com"),
+        "google docs": ("Google Docs", "https://docs.google.com"),
+        "sheets": ("Google Sheets", "https://sheets.google.com"),
+        "google sheets": ("Google Sheets", "https://sheets.google.com"),
+        "drive": ("Google Drive", "https://drive.google.com"),
+        "google drive": ("Google Drive", "https://drive.google.com"),
+        "canva": ("Canva", "https://www.canva.com"),
+        "stackoverflow": ("Stack Overflow", "https://stackoverflow.com"),
     }
 
     if lower_query in WEB_PLATFORMS:
         name, url = WEB_PLATFORMS[lower_query]
-        webbrowser.open(url)
+        open_browser_url(url)
         return ToolResult(
             success=True,
             output=f"Opened {name}.",
@@ -118,10 +202,10 @@ def open_app(
 
     # 3. Direct URLs or Domain Requests
     if lower_query.startswith(("http://", "https://", "www.")) or (
-        "." in lower_query and any(lower_query.endswith(ext) for ext in (".com", ".org", ".net", ".io", ".tv", ".ai", ".co"))
+        "." in lower_query and any(lower_query.endswith(ext) for ext in (".com", ".org", ".net", ".io", ".tv", ".ai", ".co", ".app", ".dev"))
     ):
         url = clean_query if clean_query.startswith(("http://", "https://")) else f"https://{clean_query}"
-        webbrowser.open(url)
+        open_browser_url(url)
         return ToolResult(
             success=True,
             output=f"Opened {clean_query}.",
@@ -144,6 +228,15 @@ def open_app(
             target_path = found_bin
 
     if not target_path:
+        # If single alphanumeric token, attempt web navigation as intuitive fallback
+        if clean_query.isalnum() and len(clean_query) >= 3 and not any(k in lower_query for k in ("something", "anything")):
+            url = f"https://www.{lower_query}.com"
+            open_browser_url(url)
+            return ToolResult(
+                success=True,
+                output=f"Opened {clean_query.capitalize()} on web.",
+            )
+
         available_count = len(enabled_apps())
         return ToolResult(
             success=False,
@@ -153,21 +246,10 @@ def open_app(
             ),
         )
 
-    # 5. Launch Local Executable, UWP App, or System Utility
-    lower_target = target_path.lower()
+
+    # 5. Launch Local Executable, UWP App, or System Utility via Background PowerShell
     try:
-        if lower_target.startswith("shell:appsfolder\\") or (catalog_app and catalog_app.kind == "app_id"):
-            uwp_target = target_path if target_path.lower().startswith("shell:") else f"shell:AppsFolder\\{target_path}"
-            subprocess.Popen(["explorer.exe", uwp_target])
-        elif lower_target.endswith(".msc"):
-            subprocess.Popen(["mmc.exe", target_path])
-        elif lower_target.endswith(".cpl"):
-            subprocess.Popen(["control.exe", target_path])
-        else:
-            try:
-                os.startfile(target_path)
-            except Exception:
-                subprocess.Popen([target_path], shell=False)
+        launch_app_via_powershell(target_path)
 
         # Give newly launched application window time to initialize and bring to foreground
         import time
@@ -435,6 +517,7 @@ def type_text(
     text: str,
     title: str = None,
     app: str = None,
+    press_enter: bool = False,
     **kwargs,
 ) -> ToolResult:
     """Type text into the target application, ensuring Electron overlay never steals typing."""
@@ -460,32 +543,60 @@ def type_text(
     import time
     from z3ro.window import get_foreground_window, focus_window, list_windows
 
+    OVERLAY_TERMS = ("electron", "dynamic island", "z3ro", "sobia", "python")
+    SKIP_TERMS = (*OVERLAY_TERMS, "task switching", "program manager", "settings")
+
     target_title = title or app or kwargs.get("window")
     if target_title:
-        focus_window(target_title, timeout=2.5)
-        time.sleep(0.12)
+        # Try focusing with retry
+        for attempt in range(2):
+            if focus_window(target_title, timeout=2.5):
+                break
+            time.sleep(0.15)
+        time.sleep(0.2)  # Let OS register focus change
     else:
-        # Check foreground window. If it is the Electron Dynamic Island overlay or Python, switch focus to the user's active application!
+        # No explicit target — find the user's real app (never type into Electron overlay)
         try:
             fg = get_foreground_window()
-            if fg and any(term in fg.title.lower() for term in ("electron", "dynamic island", "z3ro", "sobia")):
+            if fg is None or any(term in fg.title.lower() for term in OVERLAY_TERMS):
+                # Find the most recent non-overlay user window
                 candidates = [
                     w for w in list_windows()
-                    if not any(t in w.title.lower() for t in ("electron", "dynamic island", "task switching", "program manager", "z3ro", "sobia"))
+                    if w.title.strip()
+                    and not any(t in w.title.lower() for t in SKIP_TERMS)
+                    and w.width > 50 and w.height > 50  # Skip tiny/invisible windows
                 ]
                 if candidates:
-                    focus_window(candidates[0].title, timeout=1.0)
-                    time.sleep(0.12)
+                    focus_window(candidates[0].title, timeout=1.5)
+                    time.sleep(0.2)
         except Exception:
             pass
+
+    # Final safety check: if we're STILL in Electron, abort
+    try:
+        fg_check = get_foreground_window()
+        if fg_check and any(term in fg_check.title.lower() for term in ("electron", "dynamic island")):
+            # One last attempt with all non-overlay windows
+            for w in list_windows():
+                if not any(t in w.title.lower() for t in SKIP_TERMS) and w.width > 50:
+                    focus_window(w.title, timeout=1.0)
+                    time.sleep(0.15)
+                    break
+    except Exception:
+        pass
+
+    do_send = press_enter or kwargs.get("enter") or kwargs.get("send")
 
     try:
         import pyperclip
         # Fast & universal clipboard paste (works across WhatsApp, Telegram, Notepad, Chrome, Word, etc.)
         pyperclip.copy(text)
-        time.sleep(0.06)
+        time.sleep(0.08)
         pyautogui.hotkey("ctrl", "v")
-        time.sleep(0.06)
+        time.sleep(0.08)
+        if do_send:
+            time.sleep(0.08)
+            pyautogui.press("enter")
         return ToolResult(
             success=True,
             output=f"Typed text: {text[:50]}...",
@@ -493,6 +604,9 @@ def type_text(
     except Exception:
         try:
             pyautogui.write(text, interval=0.01)
+            if do_send:
+                time.sleep(0.08)
+                pyautogui.press("enter")
             return ToolResult(
                 success=True,
                 output="Text typed successfully.",
@@ -591,6 +705,17 @@ def open_telegram_tool(**kwargs) -> ToolResult:
     return ToolResult(success=res["success"], output=res["output"])
 
 
+def send_app_message_tool(app: str = None, recipient: str = "", message: str = "", **kwargs) -> ToolResult:
+    """Universally send a message to a recipient or active chat on any desktop application."""
+    from z3ro.messaging.universal import send_app_message
+    target_app = app or kwargs.get("target_app") or kwargs.get("application")
+    recip = recipient or kwargs.get("contact") or kwargs.get("to") or kwargs.get("username", "")
+    msg = message or kwargs.get("text", "")
+    res = send_app_message(target_app, recip, msg)
+    return ToolResult(success=res["success"], output=res["output"])
+
+
+
 def get_youtube_video(query: str) -> str | None:
     """Search YouTube and return the top video ID."""
     import urllib.request
@@ -652,39 +777,18 @@ def play_song(song: str = "", **kwargs) -> ToolResult:
         target_url = f"https://www.youtube.com/results?search_query={urllib.parse.quote(search_term)}"
 
     # 2. Launch in standalone YouTube app window (Chrome --app=URL)
-    chrome_candidates = [
-        os.path.expandvars(r"%PROGRAMFILES%\Google\Chrome\Application\chrome.exe"),
-        os.path.expandvars(r"%PROGRAMFILES(X86)%\Google\Chrome\Application\chrome.exe"),
-        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
-        shutil.which("chrome.exe"),
-        shutil.which("chrome"),
-    ]
-    chrome_exe = next((p for p in chrome_candidates if p and os.path.isfile(p)), None)
-
-    global _current_song_process
-    try:
-        if chrome_exe:
-            # Opens in a clean standalone window without browser address bar
-            _current_song_process = subprocess.Popen([chrome_exe, f"--app={target_url}"])
-        else:
-            webbrowser.open(target_url)
-
+    # 2. Launch in standalone YouTube app window (Chrome/Edge --app=URL)
+    success = open_browser_url(target_url, app_mode=True)
+    if success:
         return ToolResult(
             success=True,
             output=f"Playing {display_title} on YouTube.",
         )
-    except Exception as e:
-        try:
-            webbrowser.open(target_url)
-            return ToolResult(
-                success=True,
-                output=f"Playing {display_title} on YouTube.",
-            )
-        except Exception as err:
-            return ToolResult(
-                success=False,
-                output=f"Failed to play song: {err}",
-            )
+
+    return ToolResult(
+        success=False,
+        output=f"Could not open YouTube in browser.",
+    )
 
 
 # Global reference to active song process
@@ -769,8 +873,12 @@ def resume_song(**kwargs) -> ToolResult:
 def stop_song(**kwargs) -> ToolResult:
     """Stop currently playing audio, video, or music completely."""
     global _current_song_process
+    import os
     import time
+    import ctypes
     from z3ro.window import find_window, focus_window, list_windows
+    user32 = ctypes.windll.user32
+    WM_CLOSE = 0x0010
 
     # 1. Stop any sounddevice audio playback
     try:
@@ -779,27 +887,45 @@ def stop_song(**kwargs) -> ToolResult:
     except Exception:
         pass
 
-    # 2. Terminate any active spawned song process
+    # 2. Terminate any active spawned song process (Chrome --app)
     if _current_song_process is not None:
         try:
+            pid = _current_song_process.pid
             if _current_song_process.poll() is None:
                 _current_song_process.terminate()
-                time.sleep(0.12)
+                time.sleep(0.15)
                 if _current_song_process.poll() is None:
                     _current_song_process.kill()
+            # Also kill child processes spawned by Chrome
+            try:
+                subprocess.run(
+                    ["taskkill", "/F", "/T", "/PID", str(pid)],
+                    capture_output=True, timeout=2,
+                )
+            except Exception:
+                pass
         except Exception:
             pass
         _current_song_process = None
 
-    # 3. If a YouTube window exists on screen, bring to front and pause
-    yt = find_window("YouTube")
-    if yt:
-        focus_window("YouTube")
-        time.sleep(0.08)
-        pyautogui.press("esc")
-        time.sleep(0.04)
-        pyautogui.press("k")
-        time.sleep(0.04)
+    # 3. Close ALL YouTube windows via WM_CLOSE
+    closed_any = False
+    for w in list_windows():
+        if "youtube" in w.title.lower():
+            user32.PostMessageW(w.hwnd, WM_CLOSE, 0, 0)
+            closed_any = True
+
+    if closed_any:
+        time.sleep(0.2)
+        # Kill any remaining Chrome / Edge --app=youtube processes
+        for im in ("chrome.exe", "msedge.exe", "brave.exe"):
+            try:
+                subprocess.run(
+                    ["taskkill", "/F", "/IM", im, "/FI", "WINDOWTITLE eq *YouTube*"],
+                    capture_output=True, timeout=2,
+                )
+            except Exception:
+                pass
         return ToolResult(success=True, output="Stopped playback.")
 
     # 4. Fallback: Hardware Media Stop / Pause keys if no specific YouTube window
@@ -979,6 +1105,13 @@ TOOLS = {
         description="Open the native Telegram desktop application.",
         function=open_telegram_tool,
     ),
+
+    "send_app_message": Tool(
+        name="send_app_message",
+        description="Send a message to a recipient or active chat on any desktop application (WhatsApp, Telegram, Discord, Slack, Teams, etc.).",
+        function=send_app_message_tool,
+    ),
+
 
     "find_window": Tool(
         name="find_window",

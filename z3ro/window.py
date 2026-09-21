@@ -7,6 +7,16 @@ import time
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 
+# Enable Per-Monitor V2 DPI Awareness so Win32 GetWindowRect matches pyautogui's physical pixel space
+try:
+    user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+except Exception:
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except Exception:
+        pass
+
+
 
 @dataclass
 class WindowInfo:
@@ -47,8 +57,8 @@ def get_window_rect(hwnd: int):
     return rect
 
 
-def list_windows() -> list[WindowInfo]:
-    """Return visible Windows with non-empty titles."""
+def attach_thread_desktop():
+    """Ensure the calling thread is attached to the interactive Windows 'Default' desktop."""
     try:
         hdesk = user32.OpenDesktopW("Default", 0, False, 0x01FF)
         if hdesk:
@@ -56,6 +66,10 @@ def list_windows() -> list[WindowInfo]:
     except Exception:
         pass
 
+
+def list_windows() -> list[WindowInfo]:
+    """Return visible Windows with non-empty titles."""
+    attach_thread_desktop()
     windows = []
 
     EnumWindowsProc = ctypes.WINFUNCTYPE(
@@ -94,6 +108,10 @@ def list_windows() -> list[WindowInfo]:
         if rect is None:
             return True
 
+        # Skip zero-sized or collapsed windows
+        if (rect.right - rect.left) <= 0 or (rect.bottom - rect.top) <= 0:
+            return True
+
         windows.append(
             WindowInfo(
                 hwnd=hwnd,
@@ -107,10 +125,22 @@ def list_windows() -> list[WindowInfo]:
 
         return True
 
-    user32.EnumWindows(
-        EnumWindowsProc(callback),
-        0,
-    )
+    proc = EnumWindowsProc(callback)
+    hdesk = None
+    try:
+        hdesk = user32.OpenDesktopW("Default", 0, False, 0x01FF)
+        if hdesk:
+            user32.EnumDesktopWindows(hdesk, proc, 0)
+        else:
+            user32.EnumWindows(proc, 0)
+    except Exception:
+        user32.EnumWindows(proc, 0)
+    finally:
+        if hdesk:
+            try:
+                user32.CloseDesktop(hdesk)
+            except Exception:
+                pass
 
     return windows
 
@@ -120,6 +150,7 @@ def find_window(
     timeout: float = 0.0,
 ) -> WindowInfo | None:
     """Find the first visible window matching a title, with optional polling timeout."""
+    attach_thread_desktop()
 
     if not isinstance(title, str):
         return None
@@ -144,6 +175,7 @@ def find_window(
 
 def get_foreground_window() -> WindowInfo | None:
     """Return the currently focused window."""
+    attach_thread_desktop()
 
     hwnd = user32.GetForegroundWindow()
 
@@ -216,6 +248,13 @@ def focus_window(
 ) -> bool:
     """Bring a matching window to the foreground reliably using Win32 foreground lock bypass."""
 
+    try:
+        hdesk = user32.OpenDesktopW("Default", 0, False, 0x01FF)
+        if hdesk:
+            user32.SetThreadDesktop(hdesk)
+    except Exception:
+        pass
+
     window = find_window(title, timeout=timeout)
 
     if window is None:
@@ -232,21 +271,43 @@ def focus_window(
 
     time.sleep(0.08)
 
-    # Force foreground window even if OS blocks background processes
+    # Windows foreground lock bypass:
+    # 1. Synthesize Alt key tap so Windows recognizes active user event
+    VK_MENU = 0x12  # Alt key
+    KEYEVENTF_KEYUP = 0x0002
+    user32.keybd_event(VK_MENU, 0, 0, 0)
+    user32.keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0)
+
+    # 2. Elevate window to top of Z-order (above even topmost overlays)
+    HWND_TOPMOST = -1
+    HWND_NOTOPMOST = -2
+    SWP_NOSIZE = 0x0001
+    SWP_NOMOVE = 0x0002
+    SWP_SHOWWINDOW = 0x0040
+    user32.SetWindowPos(window.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
+    user32.SetWindowPos(window.hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
+
+    # 3. Attach input thread and set foreground
     cur_thread = kernel32.GetCurrentThreadId()
     fg_hwnd = user32.GetForegroundWindow()
     fg_thread = user32.GetWindowThreadProcessId(fg_hwnd, None) if fg_hwnd else 0
+    target_thread = user32.GetWindowThreadProcessId(window.hwnd, None)
 
     if fg_thread and cur_thread != fg_thread:
         user32.AttachThreadInput(cur_thread, fg_thread, True)
-        user32.SetForegroundWindow(window.hwnd)
-        user32.SetFocus(window.hwnd)
-        user32.AttachThreadInput(cur_thread, fg_thread, False)
-    else:
-        user32.SetForegroundWindow(window.hwnd)
-        user32.SetFocus(window.hwnd)
+    if target_thread and cur_thread != target_thread:
+        user32.AttachThreadInput(cur_thread, target_thread, True)
 
-    time.sleep(0.12)
+    user32.SetForegroundWindow(window.hwnd)
+    user32.BringWindowToTop(window.hwnd)
+    user32.SetFocus(window.hwnd)
+
+    if fg_thread and cur_thread != fg_thread:
+        user32.AttachThreadInput(cur_thread, fg_thread, False)
+    if target_thread and cur_thread != target_thread:
+        user32.AttachThreadInput(cur_thread, target_thread, False)
+
+    time.sleep(0.15)
     return is_window_focused(title) or user32.GetForegroundWindow() == window.hwnd
 
 

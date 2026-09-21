@@ -22,6 +22,10 @@ from z3ro.logger import Colors, logger
 from z3ro.agent import Z3ROAgent
 from z3ro.voice.stt import STT
 from z3ro.voice.tts import TTS
+from z3ro.dashboard.app import get_full_dashboard_state
+from z3ro.economy.limits import limits_manager
+from z3ro.tools.communication import approval_queue, communication_tool
+from z3ro.autonomy.exploration import loop_coordinator
 
 
 class UIBridgeServer:
@@ -74,7 +78,7 @@ class UIBridgeServer:
         self.clients.add(websocket)
         logger.info(f"Electron UI connected: {websocket.remote_address}")
 
-        # Send initial status
+        # Send initial status & complete economic telemetry (Section 13)
         await websocket.send(
             json.dumps({
                 "type": "init",
@@ -83,6 +87,7 @@ class UIBridgeServer:
                 "vision_model": config.VISION_MODEL,
                 "tts_voice": config.TTS_VOICE,
                 "status": "idle",
+                "economy_state": get_full_dashboard_state(),
             })
         )
 
@@ -111,6 +116,39 @@ class UIBridgeServer:
                         if name:
                             config.ASSISTANT_NAME = name
                             await self.broadcast({"type": "status", "state": "idle", "name": name})
+
+                    elif msg_type == "get_economy_state":
+                        await websocket.send(json.dumps({
+                            "type": "economy_state",
+                            "data": get_full_dashboard_state(),
+                        }))
+
+                    elif msg_type == "toggle_kill_switch":
+                        active = bool(data.get("active", False))
+                        limits_manager.set_kill_switch(active)
+                        await self.broadcast({
+                            "type": "economy_state",
+                            "data": get_full_dashboard_state(),
+                        })
+
+                    elif msg_type == "resolve_approval":
+                        action_id = data.get("action_id", "")
+                        approved = bool(data.get("approved", False))
+                        ok = approval_queue.resolve_action(action_id, approved=approved)
+                        if ok and approved:
+                            communication_tool.execute_approved_action(action_id)
+                        await self.broadcast({
+                            "type": "economy_state",
+                            "data": get_full_dashboard_state(),
+                        })
+
+                    elif msg_type == "run_discovery_cycle":
+                        cycle_res = await asyncio.to_thread(loop_coordinator.run_discovery_cycle)
+                        await self.broadcast({
+                            "type": "cycle_completed",
+                            "result": cycle_res,
+                            "economy_state": get_full_dashboard_state(),
+                        })
 
                 except json.JSONDecodeError:
                     pass
@@ -279,6 +317,23 @@ class UIBridgeServer:
             logger.debug(f"Could not start app watcher from UI bridge: {e}")
 
         logger.info(f"Starting UI Bridge server on ws://{self.host}:{self.port}")
+        
+        async def periodic_telemetry_broadcast():
+            while True:
+                try:
+                    await asyncio.sleep(2.0)
+                    if self.clients:
+                        await self.broadcast({
+                            "type": "economy_state",
+                            "data": get_full_dashboard_state(),
+                        })
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger.debug(f"Telemetry broadcast error: {e}")
+
+        asyncio.create_task(periodic_telemetry_broadcast())
+
         async with websockets.serve(self.handle_client, self.host, self.port):
             await asyncio.Future()  # run forever
 

@@ -5,10 +5,13 @@ Provides native messaging capabilities for WhatsApp and Telegram on Windows.
 
 from z3ro.messaging.whatsapp import send_whatsapp, open_whatsapp
 from z3ro.messaging.telegram import send_telegram, open_telegram
+from z3ro.messaging.universal import send_app_message
 
 __all__ = [
     "send_whatsapp",
     "open_whatsapp",
     "send_telegram",
     "open_telegram",
+    "send_app_message",
 ]
+

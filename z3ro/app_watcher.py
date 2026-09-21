@@ -18,6 +18,7 @@ from z3ro.app_indexer import (
     APPS_TXT_PKG,
     clean_name,
     EXCLUDE_FILENAMES,
+    EXCLUDE_DIR_SUBSTRINGS,
 )
 from z3ro.app_catalog import reload_catalog, load_catalog
 from z3ro.logger import logger
@@ -123,7 +124,11 @@ class AppWatcher:
                 continue
 
             try:
-                for root, _, files in os.walk(d):
+                for root, dirs, files in os.walk(d):
+                    low_root = root.lower()
+                    if any(excl in low_root for excl in EXCLUDE_DIR_SUBSTRINGS):
+                        dirs.clear()
+                        continue
                     for file in files:
                         lowered = file.lower()
                         if not (lowered.endswith(".exe") or lowered.endswith(".lnk")):

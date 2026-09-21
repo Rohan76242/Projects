@@ -1,0 +1,9 @@
+{
+  "daily_spend_cap": 200.0,
+  "single_transaction_cap": 50.0,
+  "max_concurrent_open_commitments": 3,
+  "cooldown_period_seconds": 60.0,
+  "max_external_actions_per_hour": 15,
+  "max_external_actions_per_day": 60,
+  "kill_switch_active": false
+}
