@@ -1,0 +1,17 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+logs/
+*.log
+*.wav
+z3ro_screen.png
+test_screen*.png
+build/
+dist/
+*.egg-info/
+node_modules/
+scratch/
